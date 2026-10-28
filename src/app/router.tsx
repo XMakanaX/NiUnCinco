@@ -5,6 +5,7 @@ import { TransactionsPage } from '@/features/transactions/TransactionsPage';
 import { AccountsPage } from '@/features/accounts/AccountsPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 import { LoginPage } from '@/features/auth/LoginPage';
+import { DesignSystemPage } from '@/app/DesignSystemPage';
 
 /**
  * Rutas por §4.7 del plan. El guard de sesión (ruta privada -> /login)
@@ -14,6 +15,12 @@ export const router = createBrowserRouter([
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    // Vitrina interna del sistema de diseño (Fase 2). No se enlaza en el
+    // nav — se retira o se protege antes de producción (Fase 7/15).
+    path: '/dev/design-system',
+    element: <DesignSystemPage />,
   },
   {
     path: '/',

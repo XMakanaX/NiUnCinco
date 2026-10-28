@@ -1,31 +1,163 @@
 @import 'tailwindcss';
 
-/*
- * Capa "mobile-native": fixes de plataforma que separan una PWA instalada
- * de "una web dentro del navegador". Ver skill mobile-native. Cada regla
- * lleva su razón en el plan (Fase 0, §4.9) — no se tocan sin leerla primero.
- */
+/* ==========================================================================
+   Sistema de diseño — Fase 2 del plan maestro.
+
+   Dirección: una app de finanzas se usa para decidir, no para entretener.
+   La paleta es "papel de contabilidad" (fondo cálido, tinta profunda) en vez
+   del cliché de IA (crema+serif+terracota / negro+neón/newspaper). El color
+   de ingreso/gasto vive en los renglones de movimientos, nunca en el saldo
+   principal: un balance que cambia de color según el signo se siente como
+   un ticker de bolsa, no como control personal. Tipografía: fuente de
+   sistema para la UI (cero costo de descarga, cero FOUC, coherente con
+   Apple HIG — "usa la fuente de la plataforma salvo que haya una razón") y
+   monoespaciada de sistema para TODO monto: alinea cifras en columnas como
+   un estado de cuenta real y da tabular figures sin trucos de CSS.
+   ========================================================================== */
+
+:root {
+  /* Paleta — tema claro (papel de contabilidad) */
+  --paper: #f7f6f3;
+  --surface: #ffffff;
+  --surface-sunken: #f0eee9;
+  --ink: #1c1b19;
+  --ink-muted: #6b6860;
+  --border: #e6e3dc;
+  --border-strong: #d3cfc5;
+
+  --brand: #0e3b36;
+  --brand-strong: #0a2b27;
+  --brand-contrast: #ffffff;
+
+  --income: #2f7a4f;
+  --income-surface: #e9f3ec;
+  --expense: #b3432e;
+  --expense-surface: #faeae6;
+  --focus-ring: #0e3b36;
+
+  --shadow-color: 28 27 25;
+  --shadow-sm: 0 1px 2px rgb(var(--shadow-color) / 0.06);
+  --shadow-md:
+    0 1px 2px rgb(var(--shadow-color) / 0.06), 0 8px 24px rgb(var(--shadow-color) / 0.08);
+  --shadow-lg:
+    0 2px 4px rgb(var(--shadow-color) / 0.08), 0 16px 40px rgb(var(--shadow-color) / 0.14);
+
+  /* Easings — ver skill emil-design-eng: las curvas nativas de CSS son
+     demasiado débiles para sentirse intencionales. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Tema oscuro: por preferencia de sistema, salvo que el usuario haya
+   elegido "claro" explícitamente (data-theme="light" gana siempre). */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #15181a;
+    --surface: #1e2225;
+    --surface-sunken: #191c1e;
+    --ink: #ece9e3;
+    --ink-muted: #9a978f;
+    --border: #2b2f31;
+    --border-strong: #3a3f42;
+
+    --brand: #4fa896;
+    --brand-strong: #6fc0af;
+    --brand-contrast: #0a1211;
+
+    --income: #4cae7d;
+    --income-surface: #163525;
+    --expense: #e2725b;
+    --expense-surface: #3a1f18;
+    --focus-ring: #4fa896;
+
+    --shadow-color: 0 0 0;
+  }
+}
+
+/* Selección manual del usuario (gana sobre el sistema en ambos sentidos). */
+:root[data-theme='dark'] {
+  --paper: #15181a;
+  --surface: #1e2225;
+  --surface-sunken: #191c1e;
+  --ink: #ece9e3;
+  --ink-muted: #9a978f;
+  --border: #2b2f31;
+  --border-strong: #3a3f42;
+
+  --brand: #4fa896;
+  --brand-strong: #6fc0af;
+  --brand-contrast: #0a1211;
+
+  --income: #4cae7d;
+  --income-surface: #163525;
+  --expense: #e2725b;
+  --expense-surface: #3a1f18;
+  --focus-ring: #4fa896;
+
+  --shadow-color: 0 0 0;
+}
+
+@theme {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-contrast: var(--brand-contrast);
+
+  --color-income: var(--income);
+  --color-income-surface: var(--income-surface);
+  --color-expense: var(--expense);
+  --color-expense-surface: var(--expense-surface);
+
+  /* UI: fuente de sistema — sin descarga, sin FOUC, nativa en cada
+     plataforma. Numérica: monoespaciada de sistema — cifras tabulares
+     reales para alinear columnas de montos (la firma visual de la app). */
+  --font-sans:
+    -apple-system, 'SF Pro Text', system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-mono:
+    ui-monospace, 'SF Mono', 'Cascadia Code', 'Roboto Mono', Menlo, Consolas, monospace;
+
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1.25rem;
+
+  --shadow-elevation-sm: var(--shadow-sm);
+  --shadow-elevation-md: var(--shadow-md);
+  --shadow-elevation-lg: var(--shadow-lg);
+}
+
+/* ==========================================================================
+   Capa "mobile-native": fixes de plataforma que separan una PWA instalada
+   de "una web dentro del navegador". Ver skill mobile-native. Cada regla
+   lleva su razón — no se tocan sin leerla primero.
+   ========================================================================== */
 
 html {
-  /* Mata el flash gris/azul al tocar: iOS/Android pintan un highlight por defecto. */
   -webkit-tap-highlight-color: transparent;
-  /* Evita que el pull-to-refresh del sistema secuestre el scroll de la app. */
   overscroll-behavior: none;
   color-scheme: light dark;
+  font-family: var(--font-sans);
 }
 
 body {
   margin: 0;
-  /* 100dvh, no 100vh: vh es el viewport con la barra de URL colapsada y
-     desborda al cargar. dvh sigue el tamaño visible real. */
   min-height: 100dvh;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
 }
 
 #root {
   min-height: 100dvh;
 }
 
-/* Por debajo de 16px, iOS hace zoom al enfocar y no vuelve atrás al salir. */
 input,
 textarea,
 select {
@@ -33,15 +165,17 @@ select {
 }
 
 button {
-  /* Evita que un toque largo seleccione el texto del botón como si fuera prosa. */
   user-select: none;
-  /* Quita el retraso de ~300ms que el navegador usa para detectar doble-tap-zoom. */
   touch-action: manipulation;
 }
 
-/* Los estados :hover solo aplican donde hay un puntero preciso que puede
-   hacer hover de verdad (mouse/trackpad). En táctil, Tailwind v4 ya compila
-   `hover:` a esto mismo; esta regla cubre el CSS plano fuera de utilidades. */
+/* Foco visible siempre — nunca "outline: none" sin reemplazo (accesibilidad
+   de teclado, plan maestro regla 13). */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .hoverable {
     cursor: pointer;

@@ -13,6 +13,8 @@ Thumbs.db
 *.log
 npm-debug.log*
 
+*.tsbuildinfo
+
 .vscode/*
 !.vscode/extensions.json
 .idea
