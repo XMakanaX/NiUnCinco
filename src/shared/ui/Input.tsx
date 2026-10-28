@@ -5,7 +5,7 @@ import clsx from 'clsx';
 interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'id'> {
   label: string;
   hint?: string;
-  error?: string;
+  error?: string | undefined;
   leadingElement?: ReactNode;
   ref?: React.Ref<HTMLInputElement>;
 }
