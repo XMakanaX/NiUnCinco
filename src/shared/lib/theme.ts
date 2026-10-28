@@ -2,7 +2,7 @@ import { create } from 'zustand';
 
 export type ThemePreference = 'system' | 'light' | 'dark';
 
-const STORAGE_KEY = 'finanzas-theme';
+const STORAGE_KEY = 'niuncinco-theme';
 
 function applyTheme(preference: ThemePreference) {
   const root = document.documentElement;

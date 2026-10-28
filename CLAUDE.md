@@ -1,10 +1,10 @@
-# CLAUDE.md — App de Finanzas Personales
+# CLAUDE.md — Ni Un Cinco
 
 Instrucciones de proyecto para Claude Code en este repositorio. Complementan (no reemplazan) las reglas globales del usuario.
 
 ## Qué es esto
 
-PWA de finanzas personales en CRC (colones costarricenses) con soporte opcional USD, zona horaria `America/Costa_Rica`. Instalable en iPhone, Android y escritorio desde una sola base de código. Sin apps nativas separadas.
+**Ni Un Cinco** — PWA de finanzas personales en CRC (colones costarricenses) con soporte opcional USD, zona horaria `America/Costa_Rica`. Instalable en iPhone, Android y escritorio desde una sola base de código. Sin apps nativas separadas.
 
 ## Plan maestro — fuente de verdad
 

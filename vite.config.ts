@@ -13,8 +13,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icons/*.png'],
       manifest: {
-        name: 'Finanzas',
-        short_name: 'Finanzas',
+        name: 'Ni Un Cinco',
+        short_name: 'NiUnCinco',
         description: 'Finanzas personales en colones costarricenses',
         lang: 'es-CR',
         start_url: '/',

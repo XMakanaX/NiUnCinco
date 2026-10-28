@@ -1,4 +1,4 @@
-# Finanzas
+# Ni Un Cinco
 
 App de finanzas personales (PWA) — React + TypeScript + Vite + Tailwind CSS + Supabase.
 Moneda principal CRC, soporte opcional USD, zona horaria `America/Costa_Rica`.
@@ -25,7 +25,7 @@ npm run dev                  # http://localhost:5173 — también accesible por 
 | `npm run typecheck` | `tsc -b` sin emitir |
 | `npm run test` / `test:watch` | Vitest |
 | `npm run format` | Prettier (con orden de clases de Tailwind) |
-| `npm run db:types` | regenera `src/types/database.ts` desde Supabase local |
+| `npm run db:types` | regenera `src/types/database.ts` desde el proyecto Supabase linkeado |
 
 ## Probar como PWA en un teléfono real
 

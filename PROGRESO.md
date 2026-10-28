@@ -1,4 +1,4 @@
-# Registro de fases — App de Finanzas Personales
+# Registro de fases — Ni Un Cinco
 
 Seguimiento del plan maestro (`PLAN_DESARROLLO_FINANZAS.md`, 15 fases). Se actualiza **cada vez que se cierra una fase**: marcar casilla, fecha, commit y notas. No marcar una fase como completa sin haber corrido lint/typecheck/build/tests y reportado el resultado real (regla global 6 del plan maestro).
 
