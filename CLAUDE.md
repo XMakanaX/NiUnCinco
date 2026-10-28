@@ -79,15 +79,15 @@ npm run db:types       # regenera src/types/database.ts desde Supabase local
 
 Probar PWA en hardware real: `npm run dev -- --host` o `npm run preview -- --host`, abrir la IP impresa desde el teléfono. La emulación de Chrome no reproduce sticky-hover, safe areas, zoom de inputs ni el flash de tap.
 
-## Estado actual (ver también el prompt de control al cerrar cada fase)
+## Estado actual
 
-- **Fase 1 (diagnóstico y arquitectura):** entregada y aprobada.
-- **Reconciliación de alcance (decisión del usuario):** el andamiaje técnico construido antes de este documento (Vite/TS/Tailwind/PWA, `AppShell` con tab bar/sidebar, router con páginas placeholder, helpers de dinero/fecha con tests, `vercel.json`) se adelantó a la Fase 3 sin autorización y se construyó antes del sistema de diseño de la Fase 2. El usuario decidió: **mantenerlo como base técnica**, hacer la Fase 2 ahora sobre esa base, y completar lo que falta de Fase 3 después.
-- **Fase 2 (sistema de diseño):** entregada. Tokens (`src/index.css`, `@theme` de Tailwind v4): paleta "papel de contabilidad" clara + oscura vía `prefers-color-scheme` y `data-theme` manual (sin FOUC, script inline en `index.html`), tipografía de sistema para UI + monoespaciada de sistema para todo monto (cifras tabulares, firma visual del sistema), radios/sombras/easings. Componentes en `src/shared/ui/`: `Button`, `Input`, `Select` (Base UI), `Dialog` (Base UI), `Card`, `Money`, `Badge`, `EmptyState`, `Skeleton`, `ThemeToggle`. `toast.ts` envuelve sonner. Vitrina de revisión en `/dev/design-system` (no enlazada en nav, retirar antes de producción). Revisado visualmente en claro/oscuro con Chrome (diálogo, select, toggle de tema, toasts) — sin errores de consola. 12 tests unitarios nuevos. Pendiente real: `Menu` de Base UI (no hizo falta todavía) y la paleta de categorías (colores por categoría, Fase 5).
-- **Dependencias de la Fase 2:** `@base-ui/react`, `lucide-react`, `class-variance-authority`. Se migró `zod` de v3 a v4.6.7 y `@hookform/resolvers` a v6 porque v3 tenía una vulnerabilidad alta (GHSA-mrhx-c7xc-m3w5, agotamiento de memoria) sin parche en esa rama — se hizo antes de escribir el primer schema para no migrar código ya escrito. Quedan vulnerabilidades de **toolchain de desarrollo only** (vite/vitest/esbuild/workbox, no llegan a producción) que requieren saltos de versión mayor; no se forzaron por riesgo de romper `vite-plugin-pwa` — revisar en Fase 7/14.
-- **Fase 3 (estructura/navegación):** parcial. Hecho: carpetas modulares, routing, layout responsive, tab bar móvil + sidebar escritorio, 4 de 6 pantallas (Inicio/Movimientos/Cuentas/Ajustes). Falta: rutas **Presupuestos** e **Informes**, pantalla de error/ruta inexistente, `/quick-expense` (solo la ruta, la lógica es Fase 7), estados vacíos que expliquen cómo empezar, componentes compartidos de formulario/diálogo/mensaje/loading (se completa después de la Fase 2, reusando sus componentes base).
-- **Fase 4 (Supabase/Auth/DB):** no iniciada. Sin proyecto Supabase conectado, sin `.env.local`, sin migraciones, sin RLS en código. `src/types/database.ts` es stub vacío.
-- **Fases 5-15:** sin empezar.
-- Nada desplegado a Vercel, producción sin tocar.
+**`PROGRESO.md`** es el registro oficial de avance: tabla de las 15 fases con estado (✅/🟡/⬜), fecha de cierre y commit, más un detalle por fase. Se actualiza **cada vez que se cierra una fase** — ahí, no acá. Antes de retomar trabajo o reportar avance, leer ese archivo primero.
 
-No declarar cerrada una fase del plan maestro sin correr lint/typecheck/build/tests y reportar el resultado real.
+Resumen rápido (ver `PROGRESO.md` para el detalle real):
+
+- Fases 1 y 2 completas.
+- Fase 3 parcial — adelantada junto con la Fase 1 sin autorización en su momento (routing/shell), reconciliado con el usuario: se completa después de la Fase 2 reusando sus componentes.
+- Fases 4-15 sin empezar. No hay proyecto Supabase conectado (`.env.local` sin crear); nada desplegado a Vercel.
+- Dependencias/decisiones técnicas notables de cada fase: ver `PROGRESO.md` → sección "Detalle".
+
+No declarar cerrada una fase del plan maestro sin correr lint/typecheck/build/tests, reportar el resultado real, y actualizar `PROGRESO.md`.
