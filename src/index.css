@@ -1,0 +1,60 @@
+@import 'tailwindcss';
+
+/*
+ * Capa "mobile-native": fixes de plataforma que separan una PWA instalada
+ * de "una web dentro del navegador". Ver skill mobile-native. Cada regla
+ * lleva su razón en el plan (Fase 0, §4.9) — no se tocan sin leerla primero.
+ */
+
+html {
+  /* Mata el flash gris/azul al tocar: iOS/Android pintan un highlight por defecto. */
+  -webkit-tap-highlight-color: transparent;
+  /* Evita que el pull-to-refresh del sistema secuestre el scroll de la app. */
+  overscroll-behavior: none;
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  /* 100dvh, no 100vh: vh es el viewport con la barra de URL colapsada y
+     desborda al cargar. dvh sigue el tamaño visible real. */
+  min-height: 100dvh;
+}
+
+#root {
+  min-height: 100dvh;
+}
+
+/* Por debajo de 16px, iOS hace zoom al enfocar y no vuelve atrás al salir. */
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
+button {
+  /* Evita que un toque largo seleccione el texto del botón como si fuera prosa. */
+  user-select: none;
+  /* Quita el retraso de ~300ms que el navegador usa para detectar doble-tap-zoom. */
+  touch-action: manipulation;
+}
+
+/* Los estados :hover solo aplican donde hay un puntero preciso que puede
+   hacer hover de verdad (mouse/trackpad). En táctil, Tailwind v4 ya compila
+   `hover:` a esto mismo; esta regla cubre el CSS plano fuera de utilidades. */
+@media (hover: hover) and (pointer: fine) {
+  .hoverable {
+    cursor: pointer;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
