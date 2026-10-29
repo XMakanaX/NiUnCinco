@@ -12,7 +12,7 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 4 | Supabase, autenticación y base de datos | ✅ | 2026-10-28 | `806a9a5`/`de63c08` |
 | 5 | Cuentas, tarjetas y categorías | ✅ | 2026-10-29 | `5cc92ef` |
 | 6 | Movimientos financieros | ✅ | 2026-10-29 | `49431e9` |
-| 7 | Registro rápido y atajo de iPhone | ✅ | 2026-10-29 | _pendiente de commit_ |
+| 7 | Registro rápido y atajo de iPhone | ✅ | 2026-10-29 | `24170cc` |
 | 8 | Dashboard financiero | ⬜ | — | — |
 | 9 | Presupuestos, recurrencias y metas | ⬜ | — | — |
 | 10 | Pagos y ciclo de tarjetas de crédito | ⬜ | — | — |
