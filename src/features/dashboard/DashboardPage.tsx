@@ -148,7 +148,7 @@ export function DashboardPage() {
         </PageMessage>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <Card className="flex flex-col gap-1">
           <span className="text-xs text-ink-muted">Disponible en cuentas</span>
           <Money amount={totalAvailable} currency={currency} size="lg" />
@@ -168,16 +168,16 @@ export function DashboardPage() {
           <h2 className="text-sm font-medium text-ink">Crédito disponible</h2>
           <ul className="flex flex-col gap-2">
             {creditCards.map((card) => (
-              <li key={card.id} className="flex items-center justify-between text-sm">
-                <span className="flex items-center gap-1.5 text-ink">
+              <li key={card.id} className="flex items-center justify-between gap-2 text-sm">
+                <span className="flex min-w-0 items-center gap-1.5 text-ink">
                   <span
                     className="size-2.5 shrink-0 rounded-full"
                     style={{ backgroundColor: card.color ?? 'var(--border-strong)' }}
                     aria-hidden
                   />
-                  {card.name}
+                  <span className="truncate">{card.name}</span>
                 </span>
-                <Money amount={card.availableCredit ?? 0} currency={currency} size="sm" />
+                <Money className="shrink-0" amount={card.availableCredit ?? 0} currency={currency} size="sm" />
               </li>
             ))}
           </ul>
@@ -253,9 +253,9 @@ export function DashboardPage() {
               const over = spent > budget.amount_limit;
               return (
                 <li key={budget.id} className="flex flex-col gap-1">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-ink">{category?.name ?? 'Presupuesto general'}</span>
-                    <span className="text-ink-muted">
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span className="min-w-0 truncate text-ink">{category?.name ?? 'Presupuesto general'}</span>
+                    <span className="shrink-0 whitespace-nowrap text-ink-muted">
                       <Money amount={spent} currency={budget.currency} size="sm" /> de{' '}
                       <Money amount={budget.amount_limit} currency={budget.currency} size="sm" />
                     </span>
@@ -287,12 +287,12 @@ export function DashboardPage() {
         ) : (
           <ul className="flex flex-col gap-2">
             {upcoming.map((item) => (
-              <li key={item.id} className="flex items-center justify-between text-sm">
-                <div className="flex flex-col">
-                  <span className="text-ink">{item.name}</span>
-                  <span className="text-xs text-ink-muted">{formatDisplayDate(item.next_due_on)}</span>
+              <li key={item.id} className="flex items-center justify-between gap-2 text-sm">
+                <div className="flex min-w-0 flex-col">
+                  <span className="truncate text-ink">{item.name}</span>
+                  <span className="truncate text-xs text-ink-muted">{formatDisplayDate(item.next_due_on)}</span>
                 </div>
-                <Money amount={item.amount} currency={item.currency} size="sm" />
+                <Money className="shrink-0" amount={item.amount} currency={item.currency} size="sm" />
               </li>
             ))}
           </ul>

@@ -98,6 +98,49 @@ Verificado: `npm run lint`, `npm run typecheck`, `npm run test` (41/41 — 3 tes
 
 Pendiente: presupuestos/recurrencias/metas reales (Fase 9, que llenará los dos widgets hoy vacíos); no se pudo probar visualmente en hardware móvil real en esta sesión, solo navegador de escritorio.
 
+### 🔧 Auditoría responsive (trabajo transversal, no es una fase del plan maestro)
+Las Fases 7 y 8 habían dejado anotado que el layout móvil nunca se verificó en un viewport
+real (`resize_window` de la herramienta de Chrome no cambiaba el viewport de captura). Esta
+sesión hizo una auditoría de las 8 fases cerradas (320-430px / 768-1024px / desktop) contra
+código y corrigió lo encontrado. Confirmado por grep antes de tocar nada: 23 prefijos
+`sm:`/`md:`/`lg:` en 50 archivos `.tsx` (9 en `index.css`), 0 usos de `max-h` y 0 de
+`truncate`/`min-w-0`/`break-words`/`line-clamp` en todo `src/`.
+
+7 errores críticos corregidos: diálogos sin alto máximo (`Dialog.tsx`, `ConfirmDialog.tsx` —
+los 6 formularios, hasta 10 campos, quedaban recortados por arriba y por abajo a la vez, sin
+scroll y con el botón cerrar fuera de pantalla), filas de lista sin `min-w-0`/`truncate`
+(scroll horizontal de toda la página con nombres largos), `ColorSwatchPicker` desbordando el
+diálogo (312px rígidos en 240px disponibles), popup de `Select` sin alto máximo, KPIs del
+dashboard en `text-3xl` desbordando columnas de 138px, tab bar de 6 ítems sin encogerse en
+320px, y ausencia total de `env(safe-area-inset-left/right)`.
+
+Cambios: `Dialog.tsx` pasa a hoja inferior (`max-h-[90dvh]`, scroll interno, asa, cabecera fija)
+en <768px y modal centrado (`max-h-[85dvh]`) en md+ — estrena `--ease-drawer`, declarada desde
+la Fase 2 y sin usar. `Select`/`ConfirmDialog` con alto máximo y scroll propios. Nueva variante
+`Button size="icon"` (44×44 exactos, plan maestro regla 13) reemplaza los botones solo-icono
+que eran `size="sm"` (36px) en las 4 filas de lista. `Money` con `whitespace-nowrap` y `lg`
+responsive (`text-2xl` → `md:text-3xl`). `min-w-0`/`truncate`/`shrink-0` aplicado en las 4 filas
+de lista, el dashboard y `CategoryBarChart`. `AppShell` gana `max-w-5xl` centrado, insets
+laterales, y el tab link trunca en vez de desbordar. Filtros de `/transactions` (7 controles)
+extraídos a `TransactionFilters.tsx`: en móvil solo "Buscar" + botón "Filtros (N)" que abre el
+resto en la hoja inferior; en desktop, grid visible siempre. `QuickExpensePage`: importe con
+`clamp()` en vez de ancho fijo, chips con `truncate`, botón de guardar sin desbordar. `index.html`
+suma `interactive-widget=resizes-content` para que el teclado de Android no tape la hoja inferior.
+
+Verificado: `npm run lint` (0 errores, 0 warnings tras corregir un import sin usar), `npm run
+typecheck` (sin errores), `npm run test` (41/41 — mismos tests, no se agregaron), `npm run build`
+(éxito, mismo warning preexistente de chunk >500kB). Probado en el navegador contra `/login` y
+`/dev/design-system` (únicas rutas sin autenticación): sin desbordamiento horizontal en 1920px
+(detector `scrollWidth > clientWidth` sobre todos los elementos), y el diálogo de ejemplo
+(`ConfirmDialog` vía "Abrir diálogo") verificado por `getBoundingClientRect`: centrado exacto en
+ambos ejes, `max-height` = 85% del viewport (confirma que el breakpoint `md:` se está aplicando,
+no el de móvil). **No se pudo verificar en viewport móvil real**: `resize_window` de la
+herramienta de Chrome sigue sin cambiar `window.innerWidth` (se probó explícitamente y quedó en
+1920 tras pedir 390×780) — el mismo límite que ya habían anotado las Fases 7 y 8, y no hay
+credenciales de prueba en esta sesión para ejercitar las pantallas autenticadas (dashboard,
+movimientos, cuentas, quick-expense) donde vive la mayoría de las correcciones. Sigue pendiente,
+igual que antes, la verificación en hardware real (iPhone/Android) con `npm run dev -- --host`.
+
 ### ⬜ Fases 9-15
 Sin empezar.
 

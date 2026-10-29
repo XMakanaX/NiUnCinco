@@ -143,59 +143,70 @@
    lleva su razón — no se tocan sin leerla primero.
    ========================================================================== */
 
-html {
-  -webkit-tap-highlight-color: transparent;
-  overscroll-behavior: none;
-  color-scheme: light dark;
-  font-family: var(--font-sans);
-}
-
-body {
-  margin: 0;
-  min-height: 100dvh;
-  background-color: var(--color-paper);
-  color: var(--color-ink);
-}
-
-#root {
-  min-height: 100dvh;
-}
-
-input,
-textarea,
-select {
-  font-size: 16px;
-}
-
-button {
-  user-select: none;
-  touch-action: manipulation;
-}
-
-/* Foco visible siempre — nunca "outline: none" sin reemplazo (accesibilidad
-   de teclado, plan maestro regla 13). `:where()` le quita especificidad a
-   la pseudo-clase para que un componente con su propio foco (ej. Input,
-   que ya marca el borde y agrega un ring) pueda silenciar este outline
-   con una sola clase `outline-none` sin pelear por especificidad — si no,
-   ambos contornos se dibujan superpuestos y el borde se ve roto. */
-:where(:focus-visible) {
-  outline: 2px solid var(--focus-ring);
-  outline-offset: 2px;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .hoverable {
-    cursor: pointer;
+/* `@layer base`: Tailwind v4 emite sus utilidades dentro de `@layer
+   utilities`. Una regla CSS sin capa le gana SIEMPRE a cualquier regla en
+   capa, sin importar especificidad (spec de cascade layers) — si este
+   bloque quedara fuera de `@layer`, ninguna utilidad (`outline-hidden`,
+   `cursor-pointer`, etc.) podría nunca anular lo que se declara acá abajo,
+   por más específico que fuera el selector de la utilidad. */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+    color-scheme: light dark;
+    font-family: var(--font-sans);
   }
-}
 
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
+  body {
+    margin: 0;
+    min-height: 100dvh;
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
+
+  button {
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  /* Foco visible siempre — nunca "outline: none" sin reemplazo
+     (accesibilidad de teclado, plan maestro regla 13). `:where()` le
+     quita especificidad a la pseudo-clase para que un componente con su
+     propio foco (ej. Input, que ya marca el borde y agrega un ring)
+     pueda silenciar este outline con una sola clase `outline-hidden`
+     (Tailwind v4 — `outline-none` NO genera ninguna regla en v4 y queda
+     sin efecto) sin pelear por especificidad — si no, el outline
+     cuadrado del navegador se dibuja superpuesto al ring redondeado del
+     componente y el borde se ve roto en las esquinas. */
+  :where(:focus-visible) {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .hoverable {
+      cursor: pointer;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }

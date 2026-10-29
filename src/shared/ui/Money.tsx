@@ -21,7 +21,9 @@ const TONE_CLASSES: Record<MoneyTone, string> = {
 const SIZE_CLASSES = {
   sm: 'text-sm',
   md: 'text-base',
-  lg: 'text-3xl tracking-tight',
+  // En móvil (2 cols a 320px) text-3xl desborda la tarjeta KPI; se escala
+  // desde text-2xl y solo crece a 3xl desde md.
+  lg: 'text-2xl tracking-tight md:text-3xl',
 } as const;
 
 /**
@@ -36,7 +38,7 @@ export function Money({ amount, currency, tone = 'neutral', size = 'md', classNa
   return (
     <span
       className={clsx(
-        'font-mono tabular-nums',
+        'font-mono tabular-nums whitespace-nowrap',
         TONE_CLASSES[tone],
         SIZE_CLASSES[size],
         className,

@@ -8,7 +8,11 @@ export function RequireAuth() {
   const location = useLocation();
 
   if (initializing) {
-    return <LoadingState />;
+    return (
+      <div className="p-4">
+        <LoadingState />
+      </div>
+    );
   }
 
   if (!session) {

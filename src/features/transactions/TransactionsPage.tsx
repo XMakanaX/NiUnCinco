@@ -4,9 +4,7 @@ import { EmptyState } from '@/shared/ui/EmptyState';
 import { LoadingState } from '@/shared/ui/LoadingState';
 import { PageMessage } from '@/shared/ui/PageMessage';
 import { Button } from '@/shared/ui/Button';
-import { Input } from '@/shared/ui/Input';
-import { Select } from '@/shared/ui/Select';
-import { useTransactions, type TransactionFilters, type TransactionType } from '@/features/transactions/api/useTransactions';
+import { useTransactions, type TransactionFilters as Filters, type TransactionType } from '@/features/transactions/api/useTransactions';
 import { useAccounts } from '@/features/accounts/api/useAccounts';
 import { useCards } from '@/features/accounts/api/useCards';
 import { useCategories } from '@/features/categories/api/useCategories';
@@ -14,49 +12,51 @@ import { MovementFormDialog } from '@/features/transactions/components/MovementF
 import { TransferFormDialog } from '@/features/transactions/components/TransferFormDialog';
 import { CardPaymentFormDialog } from '@/features/transactions/components/CardPaymentFormDialog';
 import { TransactionListItem } from '@/features/transactions/components/TransactionListItem';
+import {
+  TransactionFilters as TransactionFiltersPanel,
+  type TransactionFiltersValue,
+} from '@/features/transactions/components/TransactionFilters';
 
 const ALL = '__all__';
-const TYPE_OPTIONS = [
-  { label: 'Todos los tipos', value: ALL },
-  { label: 'Ingresos', value: 'income' as const },
-  { label: 'Gastos', value: 'expense' as const },
-  { label: 'Transferencias', value: 'transfer' as const },
-  { label: 'Pagos de tarjeta', value: 'card_payment' as const },
-];
+
+const DEFAULT_FILTERS: TransactionFiltersValue = {
+  search: '',
+  from: '',
+  to: '',
+  accountId: ALL,
+  cardId: ALL,
+  categoryId: ALL,
+  type: ALL,
+};
 
 export function TransactionsPage() {
   const [movementOpen, setMovementOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [cardPaymentOpen, setCardPaymentOpen] = useState(false);
 
-  const [search, setSearch] = useState('');
-  const [from, setFrom] = useState('');
-  const [to, setTo] = useState('');
-  const [accountId, setAccountId] = useState(ALL);
-  const [cardId, setCardId] = useState(ALL);
-  const [categoryId, setCategoryId] = useState(ALL);
-  const [type, setType] = useState(ALL);
+  const [filterValue, setFilterValue] = useState<TransactionFiltersValue>(DEFAULT_FILTERS);
+  const updateFilters = (next: Partial<TransactionFiltersValue>) =>
+    setFilterValue((prev) => ({ ...prev, ...next }));
 
   const { data: accounts = [] } = useAccounts();
   const { data: cards = [] } = useCards();
   const { data: categories = [] } = useCategories();
 
-  const filters: TransactionFilters = useMemo(
+  const filters: Filters = useMemo(
     () => ({
-      from: from || undefined,
-      to: to || undefined,
-      accountId: accountId === ALL ? undefined : accountId,
-      cardId: cardId === ALL ? undefined : cardId,
-      categoryId: categoryId === ALL ? undefined : categoryId,
-      type: type === ALL ? undefined : (type as TransactionType),
-      search: search.trim() || undefined,
+      from: filterValue.from || undefined,
+      to: filterValue.to || undefined,
+      accountId: filterValue.accountId === ALL ? undefined : filterValue.accountId,
+      cardId: filterValue.cardId === ALL ? undefined : filterValue.cardId,
+      categoryId: filterValue.categoryId === ALL ? undefined : filterValue.categoryId,
+      type: filterValue.type === ALL ? undefined : (filterValue.type as TransactionType),
+      search: filterValue.search.trim() || undefined,
     }),
-    [from, to, accountId, cardId, categoryId, type, search],
+    [filterValue],
   );
 
   const { data: transactions, isPending, isError } = useTransactions(filters);
 
-  const accountOptions = [ALL, ...accounts.map((a) => a.id)];
   const accountNameById = new Map(accounts.map((a) => [a.id, a.name]));
   const cardNameById = new Map(cards.map((c) => [c.id, c.name]));
   const categoryNameById = new Map(categories.map((c) => [c.id, c.name]));
@@ -93,46 +93,13 @@ export function TransactionsPage() {
         />
       ) : (
         <>
-          <div className="flex flex-wrap gap-3">
-            <Input label="Desde" type="date" value={from} onChange={(e) => setFrom(e.target.value)} />
-            <Input label="Hasta" type="date" value={to} onChange={(e) => setTo(e.target.value)} />
-            <Input
-              label="Buscar"
-              placeholder="Comercio o notas"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-            <Select
-              label="Tipo"
-              options={TYPE_OPTIONS}
-              value={type}
-              onValueChange={(value) => setType(value)}
-            />
-            <Select
-              label="Cuenta"
-              options={[
-                { label: 'Todas las cuentas', value: ALL },
-                ...accounts.map((a) => ({ label: a.name, value: a.id })),
-              ]}
-              value={accountOptions.includes(accountId) ? accountId : ALL}
-              onValueChange={setAccountId}
-            />
-            <Select
-              label="Tarjeta"
-              options={[{ label: 'Todas las tarjetas', value: ALL }, ...cards.map((c) => ({ label: c.name, value: c.id }))]}
-              value={cardId}
-              onValueChange={setCardId}
-            />
-            <Select
-              label="Categoría"
-              options={[
-                { label: 'Todas las categorías', value: ALL },
-                ...categories.map((c) => ({ label: c.name, value: c.id })),
-              ]}
-              value={categoryId}
-              onValueChange={setCategoryId}
-            />
-          </div>
+          <TransactionFiltersPanel
+            value={filterValue}
+            onChange={updateFilters}
+            accounts={accounts}
+            cards={cards}
+            categories={categories}
+          />
 
           {isPending ? (
             <LoadingState />

@@ -25,6 +25,9 @@ const buttonStyles = cva(
         sm: 'h-9 px-3 text-sm',
         md: 'h-11 px-4',
         lg: 'h-12 px-6 text-base',
+        // Botón solo-icono: 44×44 exacto (plan maestro regla 13) — `sm`
+        // con un solo ícono queda en 36px, por debajo del mínimo táctil.
+        icon: 'size-11 shrink-0 p-0',
       },
       fullWidth: {
         true: 'w-full',

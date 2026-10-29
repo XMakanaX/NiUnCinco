@@ -159,7 +159,7 @@ export function QuickExpensePage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-surface-sunken pt-[env(safe-area-inset-top)]">
+      <div className="min-h-dvh bg-surface-sunken p-4 pt-[calc(1rem+env(safe-area-inset-top))]">
         <LoadingState rows={4} />
       </div>
     );
@@ -200,7 +200,7 @@ export function QuickExpensePage() {
 
       <form className="flex flex-1 flex-col gap-6" onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="flex flex-col items-center gap-2 rounded-[var(--radius-md)] bg-surface p-6 shadow-[var(--shadow-elevation-sm)]">
-          <div className="flex items-center gap-2">
+          <div className="flex w-full items-center justify-center gap-2">
             <input
               inputMode="decimal"
               type="number"
@@ -209,11 +209,11 @@ export function QuickExpensePage() {
               aria-label="Importe"
               placeholder="0"
               autoFocus
-              className="w-48 rounded-[var(--radius-sm)] bg-transparent text-center text-5xl font-semibold text-ink outline-none focus-visible:shadow-[0_0_0_3px_var(--ring-brand)]"
+              className="w-full min-w-0 max-w-[16ch] rounded-[var(--radius-sm)] bg-transparent text-center text-[clamp(2rem,12vw,3rem)] font-semibold text-ink outline-hidden focus-visible:shadow-[0_0_0_3px_var(--ring-brand)]"
               value={amount || ''}
               onChange={(e) => setValue('amount', e.target.value === '' ? 0 : Number(e.target.value), { shouldDirty: true })}
             />
-            <div className="flex flex-col gap-1">
+            <div className="flex shrink-0 flex-col gap-1">
               {(['CRC', 'USD'] as const).map((code) => (
                 <button
                   key={code}
@@ -244,7 +244,7 @@ export function QuickExpensePage() {
                   onClick={() => selectTarget(target)}
                   aria-pressed={selected}
                   className={clsx(
-                    'flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-medium transition-colors duration-150',
+                    'flex max-w-[min(14rem,100%)] items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-medium transition-colors duration-150',
                     selected ? 'border-brand bg-brand/10 text-brand' : 'border-border bg-surface text-ink',
                   )}
                 >
@@ -253,8 +253,8 @@ export function QuickExpensePage() {
                     style={{ backgroundColor: target.color ?? 'var(--border)' }}
                     aria-hidden
                   />
-                  {target.name}
-                  {selected ? <Check className="size-3.5" aria-hidden /> : null}
+                  <span className="min-w-0 truncate">{target.name}</span>
+                  {selected ? <Check className="size-3.5 shrink-0" aria-hidden /> : null}
                 </button>
               );
             })}
@@ -281,7 +281,7 @@ export function QuickExpensePage() {
                     }
                     aria-pressed={selected}
                     className={clsx(
-                      'flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-medium transition-colors duration-150',
+                      'flex max-w-[min(14rem,100%)] items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-medium transition-colors duration-150',
                       selected ? 'border-brand bg-brand/10 text-brand' : 'border-border bg-surface text-ink',
                     )}
                   >
@@ -290,7 +290,7 @@ export function QuickExpensePage() {
                       style={{ backgroundColor: category.color ?? 'var(--border)' }}
                       aria-hidden
                     />
-                    {category.name}
+                    <span className="min-w-0 truncate">{category.name}</span>
                   </button>
                 );
               })}
@@ -321,8 +321,8 @@ export function QuickExpensePage() {
         ) : null}
 
         <div className="mt-auto flex flex-col gap-2">
-          <Button type="submit" size="lg" loading={isSubmitting} disabled={!amount || amount <= 0}>
-            {amount ? `Guardar ${formatMoney(amount, currency)}` : 'Guardar gasto'}
+          <Button type="submit" size="lg" fullWidth className="min-w-0" loading={isSubmitting} disabled={!amount || amount <= 0}>
+            <span className="truncate">{amount ? `Guardar ${formatMoney(amount, currency)}` : 'Guardar gasto'}</span>
           </Button>
         </div>
       </form>

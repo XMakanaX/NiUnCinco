@@ -40,7 +40,7 @@ export function PageMessage({ className, tone = 'info', children, ...props }: Pa
   return (
     <div role={tone === 'error' ? 'alert' : 'status'} className={clsx(messageStyles({ tone }), className)} {...props}>
       <Icon className="mt-0.5 size-4 shrink-0" aria-hidden />
-      <div>{children}</div>
+      <div className="min-w-0 [overflow-wrap:anywhere]">{children}</div>
     </div>
   );
 }

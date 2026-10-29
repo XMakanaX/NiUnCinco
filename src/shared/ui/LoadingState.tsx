@@ -10,7 +10,7 @@ interface LoadingStateProps {
  */
 export function LoadingState({ rows = 3 }: LoadingStateProps) {
   return (
-    <div className="flex flex-col gap-3 p-4" role="status" aria-label="Cargando">
+    <div className="flex flex-col gap-3" role="status" aria-label="Cargando">
       {Array.from({ length: rows }, (_, index) => (
         <Skeleton key={index} className="h-16 w-full" />
       ))}

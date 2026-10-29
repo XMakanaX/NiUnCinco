@@ -58,14 +58,14 @@ export function TransactionListItem({
       <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-ink-muted">
         <Icon className="size-4" aria-hidden />
       </span>
-      <div className="flex flex-1 flex-col gap-0.5">
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-ink">
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate font-medium text-ink">
             {transaction.merchant || categoryName || TYPE_LABEL[transaction.type]}
           </span>
-          {voided ? <Badge tone="neutral">Anulado</Badge> : null}
+          {voided ? <Badge className="shrink-0" tone="neutral">Anulado</Badge> : null}
         </div>
-        <span className="text-xs text-ink-muted">
+        <span className="truncate text-xs text-ink-muted">
           {formatDisplayDate(transaction.occurred_on)}
           {accountName ? ` · ${accountName}` : ''}
           {cardName ? ` · ${cardName}` : ''}
@@ -73,12 +73,13 @@ export function TransactionListItem({
         </span>
       </div>
       <Money
+        className="shrink-0"
         amount={transaction.amount}
         currency={transaction.currency}
         tone={voided ? 'neutral' : tone}
       />
       {!voided ? (
-        <Button intent="ghost" size="sm" aria-label="Anular" onClick={() => setConfirmVoid(true)}>
+        <Button intent="ghost" size="icon" className="shrink-0" aria-label="Anular" onClick={() => setConfirmVoid(true)}>
           <Ban className="size-4" aria-hidden />
         </Button>
       ) : null}

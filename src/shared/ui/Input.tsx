@@ -28,7 +28,7 @@ export function Input({
   const errorId = error ? `${inputId}-error` : undefined;
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex w-full min-w-0 flex-col gap-1.5">
       <label htmlFor={inputId} className="text-sm font-medium text-ink">
         {label}
       </label>
@@ -49,7 +49,7 @@ export function Input({
           ref={ref}
           id={inputId}
           className={clsx(
-            'h-11 w-full bg-transparent text-ink outline-none placeholder:text-ink-muted',
+            'h-11 w-full bg-transparent text-ink outline-hidden placeholder:text-ink-muted',
             className,
           )}
           aria-invalid={Boolean(error) || undefined}

@@ -23,7 +23,7 @@ export function ColorSwatchPicker({ label, value, onValueChange }: ColorSwatchPi
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-sm font-medium text-ink">{label}</span>
-      <div className="flex gap-2" role="radiogroup" aria-label={label}>
+      <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={label}>
         {SWATCH_COLORS.map((color) => (
           <button
             key={color}
@@ -33,7 +33,10 @@ export function ColorSwatchPicker({ label, value, onValueChange }: ColorSwatchPi
             aria-label={color}
             onClick={() => onValueChange(color)}
             className={clsx(
-              'flex size-8 items-center justify-center rounded-full transition-transform duration-150 active:scale-95',
+              // size-10: compromiso consciente — 8 objetivos de 44px no
+              // caben en 2 filas dentro de un diálogo de 320px. flex-wrap
+              // los parte en 2 filas de 4 en vez de desbordar el diálogo.
+              'flex size-10 shrink-0 items-center justify-center rounded-full transition-transform duration-150 active:scale-95',
               value === color && 'ring-2 ring-offset-2 ring-offset-surface ring-brand',
             )}
             style={{ backgroundColor: color }}

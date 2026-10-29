@@ -38,37 +38,37 @@ export function CardListItem({ card, onEdit }: { card: Card; onEdit: () => void 
         style={{ backgroundColor: card.color ?? 'var(--border)' }}
         aria-hidden
       />
-      <div className="flex flex-1 flex-col gap-0.5">
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-ink">{card.name}</span>
-          <Badge tone="brand">{card.card_type === 'credit' ? 'Crédito' : 'Débito'}</Badge>
-          {archived ? <Badge tone="neutral">Archivada</Badge> : null}
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate font-medium text-ink">{card.name}</span>
+          <Badge className="shrink-0" tone="brand">{card.card_type === 'credit' ? 'Crédito' : 'Débito'}</Badge>
+          {archived ? <Badge className="shrink-0" tone="neutral">Archivada</Badge> : null}
         </div>
-        <span className="text-xs text-ink-muted">{card.bank ?? 'Sin banco'}</span>
+        <span className="truncate text-xs text-ink-muted">{card.bank ?? 'Sin banco'}</span>
       </div>
       {card.card_type === 'credit' ? (
-        <div className="flex flex-col items-end gap-0.5">
+        <div className="flex shrink-0 flex-col items-end gap-0.5">
           <Money amount={card.balanceDue ?? 0} currency={card.currency} tone="expense" size="sm" />
           {card.availableCredit !== null ? (
-            <span className="text-xs text-ink-muted">
+            <span className="whitespace-nowrap text-xs text-ink-muted">
               Disponible: <Money amount={card.availableCredit} currency={card.currency} size="sm" />
             </span>
           ) : null}
         </div>
       ) : null}
-      <div className="flex gap-1">
-        <Button intent="ghost" size="sm" aria-label="Editar" onClick={onEdit}>
+      <div className="flex shrink-0 gap-1">
+        <Button intent="ghost" size="icon" aria-label="Editar" onClick={onEdit}>
           <Pencil className="size-4" aria-hidden />
         </Button>
         <Button
           intent="ghost"
-          size="sm"
+          size="icon"
           aria-label={archived ? 'Restaurar' : 'Archivar'}
           onClick={() => archiveCard.mutate({ id: card.id, archived: !archived })}
         >
           {archived ? <ArchiveRestore className="size-4" aria-hidden /> : <Archive className="size-4" aria-hidden />}
         </Button>
-        <Button intent="ghost" size="sm" aria-label="Eliminar" onClick={() => setConfirmDelete(true)}>
+        <Button intent="ghost" size="icon" aria-label="Eliminar" onClick={() => setConfirmDelete(true)}>
           <Trash2 className="size-4" aria-hidden />
         </Button>
       </div>

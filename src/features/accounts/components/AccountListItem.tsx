@@ -44,27 +44,27 @@ export function AccountListItem({ account, onEdit }: { account: Account; onEdit:
         style={{ backgroundColor: account.color ?? 'var(--border)' }}
         aria-hidden
       />
-      <div className="flex flex-1 flex-col gap-0.5">
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-ink">{account.name}</span>
-          {archived ? <Badge tone="neutral">Archivada</Badge> : null}
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate font-medium text-ink">{account.name}</span>
+          {archived ? <Badge className="shrink-0" tone="neutral">Archivada</Badge> : null}
         </div>
-        <span className="text-xs text-ink-muted">{TYPE_LABEL[account.type]}</span>
+        <span className="truncate text-xs text-ink-muted">{TYPE_LABEL[account.type]}</span>
       </div>
-      <Money amount={account.balance} currency={account.currency} />
-      <div className="flex gap-1">
-        <Button intent="ghost" size="sm" aria-label="Editar" onClick={onEdit}>
+      <Money className="shrink-0" amount={account.balance} currency={account.currency} />
+      <div className="flex shrink-0 gap-1">
+        <Button intent="ghost" size="icon" aria-label="Editar" onClick={onEdit}>
           <Pencil className="size-4" aria-hidden />
         </Button>
         <Button
           intent="ghost"
-          size="sm"
+          size="icon"
           aria-label={archived ? 'Restaurar' : 'Archivar'}
           onClick={() => archiveAccount.mutate({ id: account.id, archived: !archived })}
         >
           {archived ? <ArchiveRestore className="size-4" aria-hidden /> : <Archive className="size-4" aria-hidden />}
         </Button>
-        <Button intent="ghost" size="sm" aria-label="Eliminar" onClick={() => setConfirmDelete(true)}>
+        <Button intent="ghost" size="icon" aria-label="Eliminar" onClick={() => setConfirmDelete(true)}>
           <Trash2 className="size-4" aria-hidden />
         </Button>
       </div>

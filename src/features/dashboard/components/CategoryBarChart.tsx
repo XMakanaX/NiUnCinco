@@ -21,15 +21,15 @@ export function CategoryBarChart({ rows, currency }: CategoryBarChartProps) {
       {rows.map((row) => (
         <li key={row.category_id ?? 'none'} className="flex flex-col gap-1">
           <div className="flex items-center justify-between gap-2 text-sm">
-            <span className="flex items-center gap-1.5 text-ink">
+            <span className="flex min-w-0 items-center gap-1.5 text-ink">
               <span
                 className="size-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: row.color ?? 'var(--border-strong)' }}
                 aria-hidden
               />
-              {row.category_name}
+              <span className="truncate">{row.category_name}</span>
             </span>
-            <Money amount={row.total} currency={currency} size="sm" />
+            <Money className="shrink-0" amount={row.total} currency={currency} size="sm" />
           </div>
           <div className="h-2 w-full overflow-hidden rounded-full bg-surface-sunken">
             <div

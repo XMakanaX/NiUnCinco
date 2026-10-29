@@ -44,29 +44,29 @@ export function CategoryListItem({
         style={{ backgroundColor: category.color ?? 'var(--border)' }}
         aria-hidden
       />
-      <div className="flex flex-1 flex-col gap-0.5">
-        <div className="flex items-center gap-2">
-          <span className="font-medium text-ink">{category.name}</span>
-          <Badge tone={category.kind === 'income' ? 'income' : 'expense'}>
+      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="truncate font-medium text-ink">{category.name}</span>
+          <Badge className="shrink-0" tone={category.kind === 'income' ? 'income' : 'expense'}>
             {category.kind === 'income' ? 'Ingreso' : 'Gasto'}
           </Badge>
-          {archived ? <Badge tone="neutral">Archivada</Badge> : null}
+          {archived ? <Badge className="shrink-0" tone="neutral">Archivada</Badge> : null}
         </div>
-        {parentName ? <span className="text-xs text-ink-muted">Subcategoría de {parentName}</span> : null}
+        {parentName ? <span className="truncate text-xs text-ink-muted">Subcategoría de {parentName}</span> : null}
       </div>
-      <div className="flex gap-1">
-        <Button intent="ghost" size="sm" aria-label="Editar" onClick={onEdit}>
+      <div className="flex shrink-0 gap-1">
+        <Button intent="ghost" size="icon" aria-label="Editar" onClick={onEdit}>
           <Pencil className="size-4" aria-hidden />
         </Button>
         <Button
           intent="ghost"
-          size="sm"
+          size="icon"
           aria-label={archived ? 'Restaurar' : 'Archivar'}
           onClick={() => archiveCategory.mutate({ id: category.id, archived: !archived })}
         >
           {archived ? <ArchiveRestore className="size-4" aria-hidden /> : <Archive className="size-4" aria-hidden />}
         </Button>
-        <Button intent="ghost" size="sm" aria-label="Eliminar" onClick={() => setConfirmDelete(true)}>
+        <Button intent="ghost" size="icon" aria-label="Eliminar" onClick={() => setConfirmDelete(true)}>
           <Trash2 className="size-4" aria-hidden />
         </Button>
       </div>
