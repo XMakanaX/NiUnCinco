@@ -13,7 +13,7 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 5 | Cuentas, tarjetas y categorías | ✅ | 2026-10-29 | `5cc92ef` |
 | 6 | Movimientos financieros | ✅ | 2026-10-29 | `49431e9` |
 | 7 | Registro rápido y atajo de iPhone | ✅ | 2026-10-29 | `24170cc` |
-| 8 | Dashboard financiero | ✅ | 2026-10-29 | _pendiente de commit_ |
+| 8 | Dashboard financiero | ✅ | 2026-10-29 | `423bf53` |
 | 9 | Presupuestos, recurrencias y metas | ⬜ | — | — |
 | 10 | Pagos y ciclo de tarjetas de crédito | ⬜ | — | — |
 | 11 | Importación de CSV | ⬜ | — | — |
