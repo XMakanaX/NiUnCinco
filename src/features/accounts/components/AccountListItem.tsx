@@ -6,12 +6,8 @@ import { Money } from '@/shared/ui/Money';
 import { Button } from '@/shared/ui/Button';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { toast } from '@/shared/lib/toast';
-import {
-  isForeignKeyViolation,
-  useArchiveAccount,
-  useDeleteAccount,
-  type Account,
-} from '@/features/accounts/api/useAccounts';
+import { isForeignKeyViolation } from '@/shared/lib/postgresErrors';
+import { useArchiveAccount, useDeleteAccount, type Account } from '@/features/accounts/api/useAccounts';
 
 const TYPE_LABEL: Record<Account['type'], string> = {
   cash: 'Efectivo',

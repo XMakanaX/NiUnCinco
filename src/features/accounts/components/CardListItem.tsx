@@ -7,7 +7,7 @@ import { Button } from '@/shared/ui/Button';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { toast } from '@/shared/lib/toast';
 import { useArchiveCard, useDeleteCard, type Card } from '@/features/accounts/api/useCards';
-import { isForeignKeyViolation } from '@/features/accounts/api/useAccounts';
+import { isForeignKeyViolation } from '@/shared/lib/postgresErrors';
 
 export function CardListItem({ card, onEdit }: { card: Card; onEdit: () => void }) {
   const archiveCard = useArchiveCard();

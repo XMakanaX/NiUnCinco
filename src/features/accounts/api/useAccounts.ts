@@ -14,11 +14,6 @@ export type Account = Omit<AccountRow, 'currency' | 'type'> & {
 
 const QUERY_KEY = ['accounts'];
 
-/** Error de Postgres por FK restrict: el registro tiene movimientos asociados. */
-export function isForeignKeyViolation(error: unknown): boolean {
-  return Boolean(error && typeof error === 'object' && 'code' in error && error.code === '23503');
-}
-
 export function useAccounts() {
   const userId = useAuthStore((state) => state.user?.id);
 

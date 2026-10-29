@@ -107,6 +107,7 @@ export type Database = {
           id: string
           notes: string | null
           occurred_on: string
+          status: string
           user_id: string
         }
         Insert: {
@@ -118,6 +119,7 @@ export type Database = {
           id?: string
           notes?: string | null
           occurred_on: string
+          status?: string
           user_id: string
         }
         Update: {
@@ -129,6 +131,7 @@ export type Database = {
           id?: string
           notes?: string | null
           occurred_on?: string
+          status?: string
           user_id?: string
         }
         Relationships: [
@@ -594,6 +597,7 @@ export type Database = {
           id: string
           notes: string | null
           occurred_on: string
+          status: string
           to_account_id: string
           user_id: string
         }
@@ -605,6 +609,7 @@ export type Database = {
           id?: string
           notes?: string | null
           occurred_on: string
+          status?: string
           to_account_id: string
           user_id: string
         }
@@ -616,6 +621,7 @@ export type Database = {
           id?: string
           notes?: string | null
           occurred_on?: string
+          status?: string
           to_account_id?: string
           user_id?: string
         }
@@ -675,7 +681,36 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      create_card_payment: {
+        Args: {
+          p_amount: number
+          p_card_id: string
+          p_client_id: string
+          p_currency: string
+          p_from_account_id: string
+          p_notes: string
+          p_occurred_on: string
+        }
+        Returns: string
+      }
+      create_transfer: {
+        Args: {
+          p_amount: number
+          p_client_id_in: string
+          p_client_id_out: string
+          p_currency: string
+          p_from_account_id: string
+          p_notes: string
+          p_occurred_on: string
+          p_to_account_id: string
+        }
+        Returns: string
+      }
+      void_card_payment: {
+        Args: { p_card_payment_id: string }
+        Returns: undefined
+      }
+      void_transfer: { Args: { p_transfer_id: string }; Returns: undefined }
     }
     Enums: {
       [_ in never]: never
