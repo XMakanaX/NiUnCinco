@@ -12,6 +12,7 @@ import { AccountFormDialog } from '@/features/accounts/components/AccountFormDia
 import { AccountListItem } from '@/features/accounts/components/AccountListItem';
 import { CardFormDialog } from '@/features/accounts/components/CardFormDialog';
 import { CardListItem } from '@/features/accounts/components/CardListItem';
+import { CardDetailDialog } from '@/features/accounts/components/CardDetailDialog';
 import { CategoryFormDialog } from '@/features/categories/components/CategoryFormDialog';
 import { CategoryListItem } from '@/features/categories/components/CategoryListItem';
 
@@ -64,6 +65,8 @@ function CardsTab() {
   const { data: cards, isPending, isError } = useCards();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Card | null>(null);
+  const [detailCardId, setDetailCardId] = useState<string | null>(null);
+  const detailCard = cards?.find((c) => c.id === detailCardId) ?? null;
 
   const openCreate = () => {
     setEditing(null);
@@ -90,9 +93,23 @@ function CardsTab() {
           description="Registrá tu primera tarjeta de débito o crédito."
         />
       ) : (
-        cards.map((card) => <CardListItem key={card.id} card={card} onEdit={() => openEdit(card)} />)
+        cards.map((card) => (
+          <CardListItem
+            key={card.id}
+            card={card}
+            onEdit={() => openEdit(card)}
+            onViewDetail={() => setDetailCardId(card.id)}
+          />
+        ))
       )}
       <CardFormDialog open={dialogOpen} onOpenChange={setDialogOpen} card={editing} />
+      <CardDetailDialog
+        card={detailCard}
+        open={detailCardId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDetailCardId(null);
+        }}
+      />
     </div>
   );
 }

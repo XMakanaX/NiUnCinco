@@ -14,8 +14,8 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 6 | Movimientos financieros | ✅ | 2026-10-29 | `49431e9` |
 | 7 | Registro rápido y atajo de iPhone | ✅ | 2026-10-29 | `24170cc` |
 | 8 | Dashboard financiero | ✅ | 2026-10-29 | `423bf53` |
-| 9 | Presupuestos, recurrencias y metas | ✅ | 2026-10-29 | `(pendiente de commit)` |
-| 10 | Pagos y ciclo de tarjetas de crédito | ⬜ | — | — |
+| 9 | Presupuestos, recurrencias y metas | ✅ | 2026-10-29 | `8def2fb` |
+| 10 | Pagos y ciclo de tarjetas de crédito | ✅ | 2026-10-29 | `(pendiente de commit)` |
 | 11 | Importación de CSV | ⬜ | — | — |
 | 12 | Informes, búsqueda y exportación | ⬜ | — | — |
 | 13 | PWA y funcionamiento sin conexión | ⬜ | — | — |
@@ -152,7 +152,20 @@ Verificado: `npm run lint` (0 errores/warnings), `npm run typecheck`, `npm run t
 
 Pendiente: no se pudo probar en viewport móvil real en esta sesión (misma limitación de herramienta ya anotada en Fases 7/8); datos de prueba (presupuesto general, "Netflix" recurrente, meta "Fondo de emergencia") se dejaron en el proyecto real como evidencia funcional.
 
-### ⬜ Fases 10-15
+### ✅ Fase 10 — Pagos y ciclo de tarjetas de crédito
+Migración `20261030120000_card_reminders.sql` (aplicada vía `supabase db push`, autorizado explícitamente): agrega `cards.reminder_days_before` (`int`, 1-31, nullable) — umbral *visual* de recordatorio de vencimiento, no un mecanismo de notificación (no existe correo/push confirmado, misma regla que el aviso de recurrentes de la Fase 9). `src/types/database.ts` regenerado con `supabase gen types`. El resto del backend del ciclo (deuda/crédito disponible vía `card_balances`, pago atómico vía `create_card_payment`/`void_card_payment`, `status` confirmed/voided) ya existía de las Fases 5-6 — no se tocó.
+
+`src/shared/lib/date.ts` suma `creditCardCycle(statementDay, dueDay, today?)` (calcula periodo abierto/cerrado y próximo vencimiento a partir del día de corte y vencimiento de la tarjeta, con `.refine` ya validado desde Fase 5; asume vencimiento en el mes del corte si `dueDay > statementDay` o el mes siguiente si no — caso más común en CR, documentado en el propio código) y `daysUntil(fecha, hoy?)`. 7 tests nuevos cubren antes/después del corte, cruce de año, corte día 31 en febrero y conteo de días.
+
+UI nueva: `CardDetailDialog` (`features/accounts/components/`, abierto con el botón "Ver detalle" en `CardListItem` — solo visible en tarjetas de crédito) muestra deuda/crédito disponible (vistas de Fase 5), periodo de facturación actual con total de compras del periodo (`useTransactions` filtrado por tarjeta + rango de fechas del periodo, sin traer todo el historial), próximo vencimiento, selector de recordatorio (persistido con `useUpdateCardReminder`, badge visual solo si faltan menos días que el umbral elegido — nunca se afirma que se envía nada), botón para registrar pago (reusa `CardPaymentFormDialog` de la Fase 6 con la tarjeta preseleccionada) e historial de pagos (`useCardPayments`, hook nuevo que consulta `card_payments` directo porque el asiento de `transactions` de un pago queda ligado a la cuenta de origen, no a la tarjeta — filtrar movimientos por tarjeta no lo encuentra) con botón de anular por pago (`useVoidCardPayment`, mismo patrón que `useVoidTransaction`).
+
+Validación de importes y saldos (pedida explícitamente por el plan de esta fase): `CardPaymentFormDialog` ahora muestra la deuda actual de la tarjeta elegida y bloquea el envío si el importe supera esa deuda, con mensaje explícito en el campo — antes solo validaba que el importe fuera mayor a 0.
+
+Verificado: `npm run lint`, `npm run typecheck`, `npm run build` sin errores; `npm run test` 58/58 (7 tests nuevos de `creditCardCycle`/`daysUntil`). `supabase db advisors --linked --type security` sin hallazgos nuevos (mismo warning preexistente de Auth). Probado en el navegador contra el proyecto real: tarjeta de crédito nueva (corte día 20, vencimiento día 5, límite ₡100.000) muestra periodo 21 oct–20 nov 2026 y próximo vencimiento 5 dic 2026 (coincide con el cálculo esperado a mano); gasto de ₡15.000 con la tarjeta (vía `/quick-expense`, ya probado en Fase 7) sube deuda a ₡15.000 y "Compras del periodo" a ₡15.000 en el detalle; recordatorio "3 días antes" se guarda y persiste tras cerrar/reabrir el diálogo; intento de pago de ₡20.000 (mayor a la deuda) rechazado con el mensaje de validación; pago válido de ₡5.000 reduce la deuda a ₡10.000 y aparece en el historial de pagos. **No se pudo verificar en este navegador el botón "Anular" de un pago desde el historial**: el diálogo de confirmación (`ConfirmDialog`, mismo componente ya usado y probado en Fases 6/9 para anular movimientos) queda presente en el árbol de accesibilidad pero no dispara ningún request de red al hacer clic — parece una limitación de la herramienta de automatización con diálogos anidados (`Dialog` del detalle de tarjeta + `AlertDialog` de confirmación), no del código: la lógica es idéntica a `useVoidTransaction`/`TransactionListItem`, ya verificada en Fase 6. Revisado por código, no por ejecución real. Datos de prueba ("Visa Prueba F10" y su gasto/pago) se dejaron en el proyecto real como evidencia funcional.
+
+Pendiente: verificar en hardware móvil real (misma limitación de las fases anteriores); re-probar "Anular pago" en un navegador real o con el usuario antes de confiar en ese camino.
+
+### ⬜ Fases 11-15
 Sin empezar.
 
 ---

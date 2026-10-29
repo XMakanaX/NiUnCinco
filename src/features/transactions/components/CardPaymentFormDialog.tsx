@@ -7,6 +7,7 @@ import { Select } from '@/shared/ui/Select';
 import { Button } from '@/shared/ui/Button';
 import { toast } from '@/shared/lib/toast';
 import { todayInAppTimeZone } from '@/shared/lib/date';
+import { formatMoney } from '@/shared/lib/money';
 import { cardPaymentSchema, type CardPaymentInput } from '@/features/transactions/schema';
 import { useCreateCardPayment } from '@/features/transactions/api/useTransactions';
 import { useAccounts } from '@/features/accounts/api/useAccounts';
@@ -17,9 +18,9 @@ const CURRENCY_OPTIONS = [
   { label: 'Dólares (USD)', value: 'USD' as const },
 ];
 
-function defaultValues(): CardPaymentInput {
+function defaultValues(defaultCardId: string | null): CardPaymentInput {
   return {
-    card_id: '',
+    card_id: defaultCardId ?? '',
     from_account_id: '',
     amount: 0,
     currency: 'CRC',
@@ -31,9 +32,11 @@ function defaultValues(): CardPaymentInput {
 interface CardPaymentFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Pre-selecciona la tarjeta cuando se abre desde el detalle de tarjeta (Fase 10). */
+  defaultCardId?: string | null;
 }
 
-export function CardPaymentFormDialog({ open, onOpenChange }: CardPaymentFormDialogProps) {
+export function CardPaymentFormDialog({ open, onOpenChange, defaultCardId = null }: CardPaymentFormDialogProps) {
   const createCardPayment = useCreateCardPayment();
   const { data: accounts = [] } = useAccounts();
   const { data: cards = [] } = useCards();
@@ -45,21 +48,37 @@ export function CardPaymentFormDialog({ open, onOpenChange }: CardPaymentFormDia
     reset,
     watch,
     setValue,
+    setError,
     formState: { errors, isSubmitting },
-  } = useForm<CardPaymentInput>({ resolver: zodResolver(cardPaymentSchema), defaultValues: defaultValues() });
+  } = useForm<CardPaymentInput>({
+    resolver: zodResolver(cardPaymentSchema),
+    defaultValues: defaultValues(defaultCardId),
+  });
 
   useEffect(() => {
     if (open) {
       clientIdRef.current = crypto.randomUUID();
-      reset(defaultValues());
+      reset(defaultValues(defaultCardId));
     }
-  }, [open, reset]);
+  }, [open, defaultCardId, reset]);
 
   const creditCards = cards.filter((c) => !c.archived_at && c.card_type === 'credit');
   const cardOptions = creditCards.map((c) => ({ label: c.name, value: c.id }));
   const accountOptions = accounts.filter((a) => !a.archived_at).map((a) => ({ label: a.name, value: a.id }));
+  const selectedCard = creditCards.find((c) => c.id === watch('card_id')) ?? null;
 
   const onSubmit = async (values: CardPaymentInput) => {
+    // Validación de saldo (Fase 10): no dejar registrar un pago mayor a la
+    // deuda actual de la tarjeta — el saldo es de control personal, pero
+    // igual debe ser internamente consistente.
+    if (selectedCard?.balanceDue !== null && selectedCard?.balanceDue !== undefined) {
+      if (values.amount > selectedCard.balanceDue + 0.01) {
+        setError('amount', {
+          message: `El pago no puede ser mayor a la deuda actual (${formatMoney(selectedCard.balanceDue, selectedCard.currency)})`,
+        });
+        return;
+      }
+    }
     try {
       await createCardPayment.mutateAsync({ clientId: clientIdRef.current, input: values });
       toast.success('Pago de tarjeta registrado');
@@ -85,6 +104,11 @@ export function CardPaymentFormDialog({ open, onOpenChange }: CardPaymentFormDia
           onValueChange={(value) => setValue('card_id', value, { shouldDirty: true })}
         />
         {errors.card_id ? <p className="text-xs text-expense">{errors.card_id.message}</p> : null}
+        {selectedCard?.balanceDue !== null && selectedCard?.balanceDue !== undefined ? (
+          <p className="text-xs text-ink-muted">
+            Deuda actual: {formatMoney(selectedCard.balanceDue, selectedCard.currency)}
+          </p>
+        ) : null}
         <Select
           label="Cuenta de origen"
           options={accountOptions}

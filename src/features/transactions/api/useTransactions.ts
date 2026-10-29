@@ -139,6 +139,54 @@ export function useCreateCardPayment() {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       void queryClient.invalidateQueries({ queryKey: ['accounts'] });
       void queryClient.invalidateQueries({ queryKey: ['cards'] });
+      void queryClient.invalidateQueries({ queryKey: ['card_payments'] });
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+}
+
+type CardPaymentRow = Database['public']['Tables']['card_payments']['Row'];
+export type CardPaymentHistoryEntry = Omit<CardPaymentRow, 'currency' | 'status'> & {
+  currency: CurrencyCode;
+  status: 'confirmed' | 'voided';
+};
+
+/** Historial de pagos de una tarjeta (Fase 10) — consulta `card_payments`
+ * directo, no `transactions`: el asiento de `transactions` de un pago
+ * queda ligado a la cuenta de origen (`account_id`), no a la tarjeta, así
+ * que no aparece al filtrar movimientos por `card_id`. */
+export function useCardPayments(cardId: string | null) {
+  const userId = useAuthStore((state) => state.user?.id);
+
+  return useQuery({
+    queryKey: ['card_payments', userId, cardId],
+    enabled: Boolean(userId) && Boolean(cardId),
+    queryFn: async (): Promise<CardPaymentHistoryEntry[]> => {
+      const { data, error } = await supabase
+        .from('card_payments')
+        .select('*')
+        .eq('card_id', cardId!)
+        .order('occurred_on', { ascending: false })
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data as CardPaymentHistoryEntry[];
+    },
+  });
+}
+
+export function useVoidCardPayment() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (cardPaymentId: string) => {
+      const { error } = await supabase.rpc('void_card_payment', { p_card_payment_id: cardPaymentId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      void queryClient.invalidateQueries({ queryKey: ['card_payments'] });
+      void queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      void queryClient.invalidateQueries({ queryKey: ['cards'] });
       void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });

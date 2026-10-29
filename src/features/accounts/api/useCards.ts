@@ -71,6 +71,26 @@ export function useUpdateCard() {
   });
 }
 
+/** Umbral de recordatorio visual de vencimiento (Fase 10) — no es un
+ * campo del formulario de tarjeta (`cardSchema`), se edita desde el
+ * detalle de la tarjeta. */
+export function useUpdateCardReminder() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, reminderDaysBefore }: { id: string; reminderDaysBefore: number | null }) => {
+      const { error } = await supabase
+        .from('cards')
+        .update({ reminder_days_before: reminderDaysBefore })
+        .eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+    },
+  });
+}
+
 export function useArchiveCard() {
   const queryClient = useQueryClient();
 

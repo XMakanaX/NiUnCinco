@@ -178,6 +178,7 @@ export type Database = {
           due_day: number | null
           id: string
           name: string
+          reminder_days_before: number | null
           statement_day: number | null
           updated_at: string
           user_id: string
@@ -194,6 +195,7 @@ export type Database = {
           due_day?: number | null
           id?: string
           name: string
+          reminder_days_before?: number | null
           statement_day?: number | null
           updated_at?: string
           user_id: string
@@ -210,6 +212,7 @@ export type Database = {
           due_day?: number | null
           id?: string
           name?: string
+          reminder_days_before?: number | null
           statement_day?: number | null
           updated_at?: string
           user_id?: string

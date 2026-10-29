@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Archive, ArchiveRestore, Pencil, Trash2 } from 'lucide-react';
+import { Archive, ArchiveRestore, Receipt, Pencil, Trash2 } from 'lucide-react';
 import { Card as UiCard } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
 import { Money } from '@/shared/ui/Money';
@@ -9,7 +9,15 @@ import { toast } from '@/shared/lib/toast';
 import { useArchiveCard, useDeleteCard, type Card } from '@/features/accounts/api/useCards';
 import { isForeignKeyViolation } from '@/shared/lib/postgresErrors';
 
-export function CardListItem({ card, onEdit }: { card: Card; onEdit: () => void }) {
+export function CardListItem({
+  card,
+  onEdit,
+  onViewDetail,
+}: {
+  card: Card;
+  onEdit: () => void;
+  onViewDetail?: () => void;
+}) {
   const archiveCard = useArchiveCard();
   const deleteCard = useDeleteCard();
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -57,6 +65,11 @@ export function CardListItem({ card, onEdit }: { card: Card; onEdit: () => void 
         </div>
       ) : null}
       <div className="flex shrink-0 gap-1">
+        {card.card_type === 'credit' && onViewDetail ? (
+          <Button intent="ghost" size="icon" aria-label="Ver detalle" onClick={onViewDetail}>
+            <Receipt className="size-4" aria-hidden />
+          </Button>
+        ) : null}
         <Button intent="ghost" size="icon" aria-label="Editar" onClick={onEdit}>
           <Pencil className="size-4" aria-hidden />
         </Button>
