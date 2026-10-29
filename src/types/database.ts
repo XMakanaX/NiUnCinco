@@ -136,8 +136,22 @@ export type Database = {
             foreignKeyName: "card_payments_card_id_fkey"
             columns: ["card_id"]
             isOneToOne: false
+            referencedRelation: "card_balances"
+            referencedColumns: ["card_id"]
+          },
+          {
+            foreignKeyName: "card_payments_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
             referencedRelation: "cards"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_payments_from_account_id_fkey"
+            columns: ["from_account_id"]
+            isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
           },
           {
             foreignKeyName: "card_payments_from_account_id_fkey"
@@ -198,6 +212,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "cards_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
           {
             foreignKeyName: "cards_account_id_fkey"
             columns: ["account_id"]
@@ -415,8 +436,22 @@ export type Database = {
             foreignKeyName: "recurring_expenses_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "recurring_expenses_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
             referencedRelation: "accounts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_expenses_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "card_balances"
+            referencedColumns: ["card_id"]
           },
           {
             foreignKeyName: "recurring_expenses_card_id_fkey"
@@ -503,8 +538,22 @@ export type Database = {
             foreignKeyName: "transactions_account_id_fkey"
             columns: ["account_id"]
             isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "transactions_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
             referencedRelation: "accounts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transactions_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "card_balances"
+            referencedColumns: ["card_id"]
           },
           {
             foreignKeyName: "transactions_card_id_fkey"
@@ -575,8 +624,22 @@ export type Database = {
             foreignKeyName: "transfers_from_account_id_fkey"
             columns: ["from_account_id"]
             isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
+          },
+          {
+            foreignKeyName: "transfers_from_account_id_fkey"
+            columns: ["from_account_id"]
+            isOneToOne: false
             referencedRelation: "accounts"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "transfers_to_account_id_fkey"
+            columns: ["to_account_id"]
+            isOneToOne: false
+            referencedRelation: "account_balances"
+            referencedColumns: ["account_id"]
           },
           {
             foreignKeyName: "transfers_to_account_id_fkey"
@@ -589,7 +652,27 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      account_balances: {
+        Row: {
+          account_id: string | null
+          balance: number | null
+          currency: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      card_balances: {
+        Row: {
+          available_credit: number | null
+          balance_due: number | null
+          card_id: string | null
+          card_type: string | null
+          credit_limit: number | null
+          currency: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

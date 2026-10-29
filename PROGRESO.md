@@ -8,9 +8,9 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 |---|---|---|---|---|
 | 1 | Diagnóstico y arquitectura | ✅ | 2026-10-28 | `806a9a5` |
 | 2 | Sistema de diseño | ✅ | 2026-10-28 | `76974a5` |
-| 3 | Estructura principal y navegación | ✅ | 2026-10-28 | _pendiente de commit_ |
-| 4 | Supabase, autenticación y base de datos | ✅ | 2026-10-28 | _pendiente de commit_ |
-| 5 | Cuentas, tarjetas y categorías | ⬜ | — | — |
+| 3 | Estructura principal y navegación | ✅ | 2026-10-28 | `806a9a5`/`de63c08` |
+| 4 | Supabase, autenticación y base de datos | ✅ | 2026-10-28 | `806a9a5`/`de63c08` |
+| 5 | Cuentas, tarjetas y categorías | ✅ | 2026-10-29 | _pendiente de commit_ |
 | 6 | Movimientos financieros | ⬜ | — | — |
 | 7 | Registro rápido y atajo de iPhone | ⬜ | — | — |
 | 8 | Dashboard financiero | ⬜ | — | — |
@@ -46,7 +46,18 @@ Verificado: `npm run lint`, `npm run typecheck`, `npm run build` y `npm run test
 
 Pendiente para fases futuras: lógica de negocio (saldos, RPCs atómicas de transferencias/pagos de tarjeta — Fases 5-10), borrar las dos cuentas de prueba del dashboard si se quiere el proyecto limpio (requiere `service_role`, no tocada en esta sesión).
 
-### ⬜ Fases 5-15
+### ✅ Fase 5 — Cuentas, tarjetas y categorías
+Migración `20261029120000_account_card_balances.sql` (aplicada al proyecto real vía `supabase db push`, autorizado explícitamente): vistas `account_balances` y `card_balances` (`security_invoker = true`, heredan RLS de las tablas base) como fuente única de saldo/deuda/crédito disponible — solo cuentan `transactions.status = 'confirmed'`. Saldo de cuenta = ingresos − gastos − transferencias salientes + entrantes − pagos de tarjeta hechos desde esa cuenta. Deuda/crédito disponible de tarjeta solo aplica a crédito (débito ya se refleja en el saldo de su cuenta enlazada) = gastos con esa tarjeta − pagos hechos a esa tarjeta. `src/types/database.ts` regenerado con `supabase gen types`.
+
+UI: `/accounts` reescrita con pestañas (Base UI `Tabs`, componente nuevo `shared/ui/Tabs.tsx`) Cuentas/Tarjetas/Categorías. CRUD completo en los tres: diálogos de formulario (`react-hook-form` + `zod`), confirmación de borrado (`shared/ui/ConfirmDialog.tsx` sobre `AlertDialog` de Base UI), archivar/restaurar, selector de color (`shared/ui/ColorSwatchPicker.tsx`, 8 colores fijos). Tarjetas de crédito piden límite/corte/vencimiento solo cuando `card_type = 'credit'` (validado con `.refine` en el schema); tarjetas pueden enlazarse a una cuenta. Categorías soportan subcategorías vía `parent_id` (un nivel, select de categorías raíz). Ningún dato sensible de tarjeta (número, CVV, PIN) se pide ni se guarda.
+
+Borrar vs. archivar (regla 10 del plan): cuentas/tarjetas dependen de la FK `restrict` de la base — si el borrado falla con Postgres `23503` (hay movimientos asociados), la UI archiva en su lugar y avisa. Categorías usan FK `set null`/`cascade` (la base sí permite borrarlas), así que el chequeo de "¿tiene movimientos, presupuestos o subcategorías?" corre en la app (`useDeleteCategory`) antes de borrar.
+
+Verificado: `npm run lint`, `npm run typecheck`, `npm run test` (30/30 — se agregaron 10 tests de los schemas zod de cuenta/tarjeta/categoría) y `npm run build` sin errores. Probado en el navegador contra el proyecto real (sesión ya autenticada): crear cuenta de efectivo (saldo ₡0,00 vía la vista), crear tarjeta de crédito con límite ₡500.000 (deuda ₡0,00, disponible ₡500.000,00 — ambos calculados por `card_balances`), toggle débito/crédito muestra/oculta campos de crédito correctamente, archivar/restaurar cuenta, eliminar cuenta y tarjeta sin movimientos (caso limpio), categorías semilla (9) visibles con badge de tipo, crear subcategoría con categoría padre y eliminarla. No se pudo probar en esta sesión el camino "eliminar con movimientos asociados → se archiva en su lugar" porque todavía no existe UI de movimientos (Fase 6); la lógica de captura del error `23503` / `CATEGORY_IN_USE` se revisó por código. Datos de prueba creados en esta sesión se borraron al cerrar — el proyecto queda con las 9 categorías semilla y sin cuentas/tarjetas.
+
+Pendiente para fases futuras: movimientos (Fase 6) para ejercitar el caso de borrado bloqueado y los saldos con datos reales; balance de cuenta todavía no considera transacciones `type = 'transfer'`/`'card_payment'` directamente — se apoya en las tablas `transfers`/`card_payments` dedicadas, que Fase 6 deberá poblar de forma atómica junto con las filas de `transactions`.
+
+### ⬜ Fases 6-15
 Sin empezar.
 
 ---
