@@ -10,9 +10,9 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 2 | Sistema de diseño | ✅ | 2026-10-28 | `76974a5` |
 | 3 | Estructura principal y navegación | ✅ | 2026-10-28 | `806a9a5`/`de63c08` |
 | 4 | Supabase, autenticación y base de datos | ✅ | 2026-10-28 | `806a9a5`/`de63c08` |
-| 5 | Cuentas, tarjetas y categorías | ✅ | 2026-10-29 | _pendiente de commit_ |
-| 6 | Movimientos financieros | ✅ | 2026-10-29 | _pendiente de commit_ |
-| 7 | Registro rápido y atajo de iPhone | ⬜ | — | — |
+| 5 | Cuentas, tarjetas y categorías | ✅ | 2026-10-29 | `5cc92ef` |
+| 6 | Movimientos financieros | ✅ | 2026-10-29 | `49431e9` |
+| 7 | Registro rápido y atajo de iPhone | ✅ | 2026-10-29 | _pendiente de commit_ |
 | 8 | Dashboard financiero | ⬜ | — | — |
 | 9 | Presupuestos, recurrencias y metas | ⬜ | — | — |
 | 10 | Pagos y ciclo de tarjetas de crédito | ⬜ | — | — |
@@ -70,7 +70,22 @@ Verificado: `npm run lint`, `npm run typecheck`, `npm run test` (38/38 — se ag
 
 Pendiente para fases futuras: conversión de moneda en transferencias/pagos entre cuentas de distinta moneda (fuera de alcance, bloqueado explícitamente en el formulario); pruebas de integración automatizadas contra Supabase (por ahora, igual que Fases 4-5, la verificación de RLS/cálculos es manual en navegador — no hay arnés de pruebas de integración configurado en el proyecto).
 
-### ⬜ Fases 7-15
+### ✅ Fase 7 — Registro rápido y atajo de iPhone
+`/quick-expense` reescrita (antes era el placeholder de Fase 3): pantalla de una sola vista, sin nav, pensada para registrar un gasto en menos de 10 segundos — importe con teclado numérico (`inputMode="decimal"`, foco automático), chips de "Pagar con" (cuentas + tarjetas combinadas) y de categoría (solo `kind='expense'`), comercio/descripción opcional, un botón "Guardar". Reusa `movementSchema`/`useCreateMovement` de la Fase 6 sin tocar el backend — ningún movimiento ni RPC nuevo.
+
+Valores predeterminados y accesos frecuentes (plan: "valores predeterminados configurables" + "acceso rápido a categorías y tarjetas frecuentes"): store `useQuickExpensePrefs` (zustand + `persist`, `src/features/quick-expense/store.ts`) guarda en el dispositivo la última cuenta/tarjeta/categoría usada y un contador de frecuencia por id; los chips de "Pagar con" y "Categoría" se ordenan por más usados primero. Es preferencia local, no dato financiero — nunca se sube a Supabase. Moneda por defecto = `profiles.base_currency` del usuario.
+
+Después de guardar: toast de confirmación, el formulario se resetea (importe y comercio) pero mantiene cuenta/tarjeta y categoría seleccionadas para encadenar varios registros rápidos sin volver a elegir — eso cumple "guardar, confirmar y registrar otro gasto rápidamente". `client_id` se regenera en cada guardado exitoso (protección de doble envío ya validada en Fase 6).
+
+Cola offline (regla global 12 del plan maestro — nunca mostrar como sincronizado algo que el servidor no confirmó): `src/features/quick-expense/offline/` — `queue.ts` (IndexedDB vía `idb`, store `pending`) + `usePendingQuickExpenses.ts`. Si el insert falla por error de red (`!navigator.onLine`, `TypeError`, o mensaje con "fetch"/"network" — `isNetworkError`), el gasto se guarda en la cola local en vez de mostrarse como error; la pantalla muestra "N gasto(s) pendiente(s) de enviar (sin conexión)". Se reintenta solo al evento `online` del navegador y al montar la página, reusando el mismo `client_id` (idempotente por el `unique(user_id, client_id)` de Fase 4). Esto es específico de `/quick-expense` — el soporte offline general de toda la PWA es Fase 13, no se adelantó.
+
+README actualizado con instrucciones de Atajos de Apple (disparador "Botón de acción" → acción "Abrir URLs" → `/quick-expense`) e instalación de la PWA en iPhone (Safari → compartir → agregar a inicio) y Android (Chrome → instalar app). Se aclara explícitamente que el atajo solo abre la URL — la app no detecta la pulsación del botón ni lee compras bancarias o de Apple Pay automáticamente (regla global 11).
+
+Verificado: `npm run lint`, `npm run typecheck`, `npm run test` (38/38 — no se agregaron tests nuevos, es el mismo schema de movimiento de Fase 6) y `npm run build` sin errores. Probado en el navegador contra el proyecto real (`npm run dev`): creada una cuenta de prueba ("Efectivo Prueba") porque el proyecto no tenía cuentas/tarjetas; estado vacío correcto antes de crearla. Con cuenta disponible: chips de cuenta/categoría funcionan, registro de gasto real (₡2.500,00, categoría Alimentación, comercio "Soda prueba") aparece correcto en `/transactions`. Camino offline probado interceptando `fetch`/`navigator.onLine` por consola del navegador (no hay forma de cortar la red real desde las herramientas disponibles en esta sesión): el gasto quedó en la cola con aviso "1 gasto pendiente de enviar (sin conexión)" y nunca se mostró como confirmado; al restaurar `fetch`/`onLine` y disparar el evento `online`, se sincronizó solo y apareció en `/transactions` sin duplicados. No se pudo probar en hardware real (iPhone/Android) en esta sesión — solo navegador de escritorio; `resize_window` de la herramienta de Chrome no cambió el viewport de captura, así que el layout mobile (safe areas, zoom de inputs, tap) queda sin verificar visualmente y debe probarse en un teléfono real antes de dar la Fase 7 por completamente cerrada en ese aspecto (ver sección README "Probar como PWA en un teléfono real"). Datos de prueba ("Efectivo Prueba" y sus dos movimientos) se dejaron en el proyecto real como evidencia funcional.
+
+Pendiente: validación en hardware real (iPhone con Atajos configurado, Android); Fase 13 deberá decidir si la cola offline de quick-expense se generaliza a toda la app o se mantiene como mecanismo propio de esta pantalla.
+
+### ⬜ Fases 8-15
 Sin empezar.
 
 ---
