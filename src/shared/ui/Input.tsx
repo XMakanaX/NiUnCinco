@@ -35,7 +35,8 @@ export function Input({
       <div
         className={clsx(
           'flex items-center gap-2 rounded-[var(--radius-sm)] border bg-surface px-3',
-          'transition-colors duration-150 has-[input:focus-visible]:border-brand',
+          'transition-[border-color,box-shadow] duration-150',
+          'has-[input:focus-visible]:border-brand has-[input:focus-visible]:shadow-[0_0_0_3px_var(--ring-brand)]',
           error ? 'border-expense' : 'border-border',
         )}
       >
