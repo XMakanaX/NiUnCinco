@@ -209,7 +209,7 @@ export function QuickExpensePage() {
               aria-label="Importe"
               placeholder="0"
               autoFocus
-              className="w-48 bg-transparent text-center text-5xl font-semibold text-ink outline-none"
+              className="w-48 rounded-[var(--radius-sm)] bg-transparent text-center text-5xl font-semibold text-ink outline-none focus-visible:shadow-[0_0_0_3px_var(--ring-brand)]"
               value={amount || ''}
               onChange={(e) => setValue('amount', e.target.value === '' ? 0 : Number(e.target.value), { shouldDirty: true })}
             />

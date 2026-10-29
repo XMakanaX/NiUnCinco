@@ -173,8 +173,12 @@ button {
 }
 
 /* Foco visible siempre — nunca "outline: none" sin reemplazo (accesibilidad
-   de teclado, plan maestro regla 13). */
-:focus-visible {
+   de teclado, plan maestro regla 13). `:where()` le quita especificidad a
+   la pseudo-clase para que un componente con su propio foco (ej. Input,
+   que ya marca el borde y agrega un ring) pueda silenciar este outline
+   con una sola clase `outline-none` sin pelear por especificidad — si no,
+   ambos contornos se dibujan superpuestos y el borde se ve roto. */
+:where(:focus-visible) {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
