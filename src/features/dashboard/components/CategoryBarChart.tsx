@@ -1,0 +1,47 @@
+import { Money } from '@/shared/ui/Money';
+import type { CurrencyCode } from '@/shared/lib/money';
+import type { CategoryBreakdownRow } from '@/features/dashboard/api/useDashboard';
+
+interface CategoryBarChartProps {
+  rows: CategoryBreakdownRow[];
+  currency: CurrencyCode;
+}
+
+/**
+ * Barras horizontales finas, directamente etiquetadas (nombre + monto
+ * junto a cada barra) — con una barra por categoría no hace falta
+ * leyenda aparte. Color = el que el usuario ya le asignó a la categoría
+ * (`ColorSwatchPicker`, Fase 5); "Sin categoría" usa un gris neutro.
+ */
+export function CategoryBarChart({ rows, currency }: CategoryBarChartProps) {
+  const max = Math.max(...rows.map((r) => r.total), 0);
+
+  return (
+    <ul className="flex flex-col gap-3">
+      {rows.map((row) => (
+        <li key={row.category_id ?? 'none'} className="flex flex-col gap-1">
+          <div className="flex items-center justify-between gap-2 text-sm">
+            <span className="flex items-center gap-1.5 text-ink">
+              <span
+                className="size-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: row.color ?? 'var(--border-strong)' }}
+                aria-hidden
+              />
+              {row.category_name}
+            </span>
+            <Money amount={row.total} currency={currency} size="sm" />
+          </div>
+          <div className="h-2 w-full overflow-hidden rounded-full bg-surface-sunken">
+            <div
+              className="h-full rounded-full transition-[width] duration-300 ease-[var(--ease-out)]"
+              style={{
+                width: max > 0 ? `${(row.total / max) * 100}%` : '0%',
+                backgroundColor: row.color ?? 'var(--border-strong)',
+              }}
+            />
+          </div>
+        </li>
+      ))}
+    </ul>
+  );
+}

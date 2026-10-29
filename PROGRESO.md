@@ -13,7 +13,7 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 5 | Cuentas, tarjetas y categorías | ✅ | 2026-10-29 | `5cc92ef` |
 | 6 | Movimientos financieros | ✅ | 2026-10-29 | `49431e9` |
 | 7 | Registro rápido y atajo de iPhone | ✅ | 2026-10-29 | `24170cc` |
-| 8 | Dashboard financiero | ⬜ | — | — |
+| 8 | Dashboard financiero | ✅ | 2026-10-29 | _pendiente de commit_ |
 | 9 | Presupuestos, recurrencias y metas | ⬜ | — | — |
 | 10 | Pagos y ciclo de tarjetas de crédito | ⬜ | — | — |
 | 11 | Importación de CSV | ⬜ | — | — |
@@ -85,7 +85,20 @@ Verificado: `npm run lint`, `npm run typecheck`, `npm run test` (38/38 — no se
 
 Pendiente: validación en hardware real (iPhone con Atajos configurado, Android); Fase 13 deberá decidir si la cola offline de quick-expense se generaliza a toda la app o se mantiene como mecanismo propio de esta pantalla.
 
-### ⬜ Fases 8-15
+### ✅ Fase 8 — Dashboard financiero
+`/` (`DashboardPage`) reescrita con datos reales. Migración `20261029220000_dashboard_aggregates.sql` (aplicada vía `supabase db push`, autorizado explícitamente): dos funciones `security invoker` de solo lectura — `dashboard_period_totals(moneda, desde, hasta)` (ingreso/gasto agregados) y `dashboard_category_breakdown(moneda, desde, hasta, tipo)` (gasto por categoría) — para no traer todo el historial de movimientos al cliente solo para sumarlo ahí (regla explícita de la Fase 8). `src/types/database.ts` regenerado con `supabase gen types`.
+
+Selector de moneda (CRC/USD, arranca en `profiles.base_currency`) y de periodo (mes, con flechas; no deja avanzar a meses futuros). Todo el dashboard queda filtrado a una sola moneda a la vez — nunca se suma CRC+USD (regla global 20): saldo disponible y deuda de tarjetas se calculan sumando `account_balances`/`card_balances` (vistas de Fase 5) solo de cuentas/tarjetas activas de esa moneda; si no hay ninguna, se muestra un aviso explícito en vez de un cero engañoso.
+
+Widgets: disponible en cuentas, deuda de tarjetas, patrimonio neto (disponible − deuda), crédito disponible por tarjeta, ingresos/gastos/balance del mes con barras (`IncomeExpenseBars`) y comparación en % contra el mismo rango del mes anterior — la comparación solo se muestra si el mes anterior tuvo datos (`pctChange` devuelve `null` si el total previo es 0, siguiendo "si existen datos suficientes"), gasto por categoría (`CategoryBarChart`, barras horizontales con el color que el usuario ya le asignó a cada categoría), presupuestos del mes y próximos pagos (consultan `budgets`/`recurring_expenses` reales — existen desde la Fase 4 pero su CRUD es Fase 9, así que hoy muestran el estado vacío real con link a Presupuestos, no datos inventados), y últimos 5 movimientos (reusa `TransactionListItem` de Fase 6; `useTransactions` ahora acepta `limit` para no traer todo el historial en este widget). Sin librería de gráficos nueva: barras en CSS/SVG simple, evita una dependencia de ~90kB+ para dos tipos de barra.
+
+`src/shared/lib/date.ts` suma `monthRange(mesesAtrás)` y `monthLabel(año, mes)` para el selector de periodo — con tests nuevos que fijan la fecha del sistema cerca de medianoche en Costa Rica para cubrir el mismo borde de zona horaria que ya cubría `toDateOnly`. Las mutaciones de movimientos/transferencias/pagos (`useTransactions.ts`, Fase 6) ahora también invalidan la query `dashboard` para que el resumen se actualice solo tras registrar o anular algo.
+
+Verificado: `npm run lint`, `npm run typecheck`, `npm run test` (41/41 — 3 tests nuevos de `monthRange`/`monthLabel`) y `npm run build` sin errores. `supabase db advisors --linked --type security` sin hallazgos nuevos (el único warning es preexistente, de Auth, no relacionado). Probado en el navegador contra el proyecto real: con los movimientos de prueba de la Fase 6 (₡1.000,00 + ₡2.500,00 en "Efectivo Prueba", categoría Alimentación), octubre 2026 muestra gasto ₡3.500,00, balance −₡3.500,00, disponible en cuentas −₡3.500,00 y patrimonio neto −₡3.500,00 — coincide con los movimientos reales; "Gastos por categoría" muestra Alimentación ₡3.500,00. Mes anterior (septiembre) en cero, sin comparación mostrada (correcto). Cambiar a USD pone todo en cero con el aviso de "no hay cuentas en dólares todavía" (no mezcla monedas). Flecha de mes siguiente deshabilitada en el mes actual.
+
+Pendiente: presupuestos/recurrencias/metas reales (Fase 9, que llenará los dos widgets hoy vacíos); no se pudo probar visualmente en hardware móvil real en esta sesión, solo navegador de escritorio.
+
+### ⬜ Fases 9-15
 Sin empezar.
 
 ---

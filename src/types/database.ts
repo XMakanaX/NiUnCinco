@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -705,6 +705,27 @@ export type Database = {
           p_to_account_id: string
         }
         Returns: string
+      }
+      dashboard_category_breakdown: {
+        Args: {
+          p_currency: string
+          p_from: string
+          p_kind: string
+          p_to: string
+        }
+        Returns: {
+          category_id: string
+          category_name: string
+          color: string
+          total: number
+        }[]
+      }
+      dashboard_period_totals: {
+        Args: { p_currency: string; p_from: string; p_to: string }
+        Returns: {
+          expense: number
+          income: number
+        }[]
       }
       void_card_payment: {
         Args: { p_card_payment_id: string }

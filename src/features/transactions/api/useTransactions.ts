@@ -22,6 +22,9 @@ export interface TransactionFilters {
   categoryId?: string | undefined;
   type?: TransactionType | undefined;
   search?: string | undefined;
+  /** Para widgets como "últimos movimientos" del dashboard: evita traer
+   * todo el historial cuando solo se necesitan los N más recientes. */
+  limit?: number | undefined;
 }
 
 const QUERY_KEY = ['transactions'];
@@ -46,6 +49,7 @@ export function useTransactions(filters: TransactionFilters = {}) {
       if (filters.categoryId) query = query.eq('category_id', filters.categoryId);
       if (filters.type) query = query.eq('type', filters.type);
       if (filters.search) query = query.or(`merchant.ilike.%${filters.search}%,notes.ilike.%${filters.search}%`);
+      if (filters.limit) query = query.limit(filters.limit);
 
       const { data, error } = await query;
       if (error) throw error;
@@ -75,6 +79,7 @@ export function useCreateMovement() {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       void queryClient.invalidateQueries({ queryKey: ['accounts'] });
       void queryClient.invalidateQueries({ queryKey: ['cards'] });
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 }
@@ -109,6 +114,7 @@ export function useCreateTransfer() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       void queryClient.invalidateQueries({ queryKey: ['accounts'] });
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 }
@@ -133,6 +139,7 @@ export function useCreateCardPayment() {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       void queryClient.invalidateQueries({ queryKey: ['accounts'] });
       void queryClient.invalidateQueries({ queryKey: ['cards'] });
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 }
@@ -165,6 +172,7 @@ export function useVoidTransaction() {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
       void queryClient.invalidateQueries({ queryKey: ['accounts'] });
       void queryClient.invalidateQueries({ queryKey: ['cards'] });
+      void queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
   });
 }
