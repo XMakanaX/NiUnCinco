@@ -14,7 +14,7 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 6 | Movimientos financieros | ✅ | 2026-10-29 | `49431e9` |
 | 7 | Registro rápido y atajo de iPhone | ✅ | 2026-10-29 | `24170cc` |
 | 8 | Dashboard financiero | ✅ | 2026-10-29 | `423bf53` |
-| 9 | Presupuestos, recurrencias y metas | ⬜ | — | — |
+| 9 | Presupuestos, recurrencias y metas | ✅ | 2026-10-29 | `(pendiente de commit)` |
 | 10 | Pagos y ciclo de tarjetas de crédito | ⬜ | — | — |
 | 11 | Importación de CSV | ⬜ | — | — |
 | 12 | Informes, búsqueda y exportación | ⬜ | — | — |
@@ -141,7 +141,18 @@ credenciales de prueba en esta sesión para ejercitar las pantallas autenticadas
 movimientos, cuentas, quick-expense) donde vive la mayoría de las correcciones. Sigue pendiente,
 igual que antes, la verificación en hardware real (iPhone/Android) con `npm run dev -- --host`.
 
-### ⬜ Fases 9-15
+### ✅ Fase 9 — Presupuestos, recurrencias y metas
+Migración `20261030000000_budgets_recurring_goals.sql` (aplicada vía `supabase db push`, autorizado explícitamente): vista `budget_progress` (`security_invoker = true`) calcula `amount_spent` por presupuesto sumando solo transacciones `status = 'confirmed'` y `type = 'expense'` del mismo mes/moneda/categoría (una categoría con subcategorías suma también sus hijas) — igual que las vistas de saldo de la Fase 5, nunca se trae el historial completo al cliente para sumarlo ahí. Columna `client_id` + `unique(user_id, client_id)` nueva en `goal_contributions` (antes no la tenía, igual que `transactions` desde la Fase 4). Dos RPC `security invoker` nuevas: `mark_recurring_expense_paid` (inserta el gasto del periodo y avanza `next_due_on` según la periodicidad en una sola transacción — regla global 14) y `create_goal_contribution` (inserta el aporte/retiro y actualiza `goals.current_amount` en la misma transacción; un retiro que superaría el saldo de la meta se rechaza con `raise exception`). Reintento con el mismo `client_id` en cualquiera de las dos viola el `unique` correspondiente y aborta toda la función — mismo patrón de idempotencia que `create_transfer`/`create_card_payment` (Fase 6), el cliente lo trata como éxito silencioso vía `isUniqueViolation`. `src/types/database.ts` regenerado con `supabase gen types`.
+
+Reembolsos y movimientos anulados (pedido explícito del plan Fase 9): no existe un tipo "refund" en `transactions`; un reembolso real se modela anulando el gasto original (mecanismo ya existente desde la Fase 6) — `budget_progress` excluye `status = 'voided'` igual que el resto de las vistas, así que un gasto anulado nunca cuenta contra el presupuesto. Documentado en el propio archivo de migración.
+
+UI: `/budgets` reescrita con pestañas (mismo patrón `Tabs` de la Fase 5) Presupuestos/Recurrentes/Metas. Presupuestos: CRUD con diálogo (límite general o por categoría, mes, moneda, umbral de alerta opcional), barra de progreso con color de alerta cuando se supera el umbral o el 100%, archivar/eliminar. Recurrentes: CRUD con cuenta o tarjeta de origen obligatoria (`.refine` en el schema), botón "Marcar como pagado" que llama la RPC, aviso explícito de que el recordatorio no envía notificaciones ni correos (regla global — "sin afirmar que se enviaron si no hay mecanismo confirmado"). Metas: CRUD, diálogo de aporte/retiro, historial expandible, "ritmo de ahorro" (días estimados para llegar a la meta) solo se muestra cuando hay al menos un aporte real registrado — nunca se inventa un ritmo sin datos.
+
+Verificado: `npm run lint` (0 errores/warnings), `npm run typecheck`, `npm run test` (51/51 — 10 tests nuevos de los 4 schemas zod de la fase) y `npm run build` sin errores. `supabase db advisors --linked --type security` sin hallazgos nuevos (mismo warning preexistente de Auth). Probado en el navegador contra el proyecto real: presupuesto general de ₡3.000,00 en octubre 2026 mostró "₡3.500,00 de ₡3.000,00 — Excedido por ₡500,00", coincide exacto con los gastos reales de las Fases 6/8; gasto recurrente "Netflix" ₡7.000,00 con cuenta "Efectivo Prueba" — "Marcar como pagado" creó el gasto en `/transactions` y avanzó el vencimiento de 29 oct a 29 nov 2026 (mensual); meta "Fondo de emergencia" ₡100.000,00 — aporte de ₡20.000,00 (20%, no aparece en `/transactions`, confirma que no cuenta como ingreso/gasto), intento de retiro de ₡50.000,00 (mayor al saldo) rechazado con el mensaje correcto, retiro válido de ₡5.000,00 dejó el saldo en ₡15.000,00. Durante esta prueba se encontró y corrigió un bug real: `GoalContributionDialog` comprobaba `error instanceof Error` para detectar el rechazo de saldo insuficiente, pero los errores de Postgres que llegan vía `supabase-js` son objetos planos (`PostgrestError`), no instancias de `Error` — el mensaje específico nunca se mostraba, solo el genérico. Corregido a un chequeo de `'message' in error`.
+
+Pendiente: no se pudo probar en viewport móvil real en esta sesión (misma limitación de herramienta ya anotada en Fases 7/8); datos de prueba (presupuesto general, "Netflix" recurrente, meta "Fondo de emergencia") se dejaron en el proyecto real como evidencia funcional.
+
+### ⬜ Fases 10-15
 Sin empezar.
 
 ---

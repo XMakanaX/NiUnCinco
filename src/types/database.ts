@@ -1,4 +1,4 @@
-﻿export type Json =
+export type Json =
   | string
   | number
   | boolean
@@ -281,6 +281,7 @@ export type Database = {
       goal_contributions: {
         Row: {
           amount: number
+          client_id: string
           created_at: string
           goal_id: string
           id: string
@@ -291,6 +292,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          client_id: string
           created_at?: string
           goal_id: string
           id?: string
@@ -301,6 +303,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          client_id?: string
           created_at?: string
           goal_id?: string
           id?: string
@@ -667,6 +670,28 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_progress: {
+        Row: {
+          alert_threshold_pct: number | null
+          amount_limit: number | null
+          amount_spent: number | null
+          archived_at: string | null
+          category_id: string | null
+          currency: string | null
+          id: string | null
+          period_month: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budgets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       card_balances: {
         Row: {
           available_credit: number | null
@@ -690,6 +715,17 @@ export type Database = {
           p_from_account_id: string
           p_notes: string
           p_occurred_on: string
+        }
+        Returns: string
+      }
+      create_goal_contribution: {
+        Args: {
+          p_amount: number
+          p_client_id: string
+          p_goal_id: string
+          p_notes: string
+          p_occurred_on: string
+          p_type: string
         }
         Returns: string
       }
@@ -726,6 +762,14 @@ export type Database = {
           expense: number
           income: number
         }[]
+      }
+      mark_recurring_expense_paid: {
+        Args: {
+          p_client_id: string
+          p_occurred_on: string
+          p_recurring_expense_id: string
+        }
+        Returns: string
       }
       void_card_payment: {
         Args: { p_card_payment_id: string }
