@@ -22,7 +22,7 @@ export function Tabs({ items, value, onValueChange, children }: TabsProps) {
           <BaseTabs.Tab
             key={item.value}
             value={item.value}
-            className="relative h-10 px-3 text-sm font-medium text-ink-muted outline-none transition-colors duration-150 data-[selected]:text-ink"
+            className="relative h-10 rounded-[var(--radius-sm)] px-3 text-sm font-medium text-ink-muted outline-none transition-colors duration-150 focus-visible:shadow-[0_0_0_3px_var(--ring-brand)] data-[selected]:text-ink"
           >
             {item.label}
           </BaseTabs.Tab>
