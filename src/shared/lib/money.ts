@@ -1,5 +1,8 @@
 export type CurrencyCode = 'CRC' | 'USD';
 
+/** Mayor importe representable en `numeric(14,2)` — 12 dígitos enteros + 2 decimales. */
+export const MAX_MONEY_AMOUNT = 999_999_999_999.99;
+
 const LOCALE = 'es-CR';
 
 /**

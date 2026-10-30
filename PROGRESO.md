@@ -19,7 +19,7 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 11 | Importación de CSV | ✅ | 2026-10-30 | `a50436d` |
 | 12 | Informes, búsqueda y exportación | ✅ | 2026-10-30 | `b484637` |
 | 13 | PWA y funcionamiento sin conexión | 🟡 | 2026-10-30 | `94345bc` |
-| 14 | Auditoría, seguridad y pruebas | 🟡 | 2026-10-30 | `38f88ff` |
+| 14 | Auditoría, seguridad y pruebas | 🟡 | 2026-10-30 | _pendiente de commit_ |
 | 15 | Preparación de despliegue y entrega | ⬜ | — | — |
 
 ---
@@ -215,14 +215,31 @@ Hallazgos de seguridad corregidos:
 
 Verificado por código (sin hallazgos nuevos, confirma lo ya cerrado en Fases 4-13): RLS `enable`+`force` en las 11 tablas, políticas con `(select auth.uid())` (una evaluación por consulta, no por fila) en todas; 9 de 10 funciones RPC/vista son `security invoker` con `set search_path = ''` explícito (la única `security definer`, `handle_new_user`, es el trigger que crea el perfil al registrarse — uso correcto y necesario); ninguna `service_role` ni secreto en `src/`, solo `VITE_*` llega al cliente, `.env.local` ignorado por git; los 10 diálogos con formulario real bloquean doble envío (`isSubmitting`); los 5 flujos con `client_id` (movimiento, transferencia, pago de tarjeta, aporte de meta, recurrente pagado) son idempotentes por el `unique(user_id, client_id)` de la base, confirmado desde Fases 6/9/13; ningún informe/dashboard suma CRC+USD (todas las RPC reciben `p_currency` explícito); lote de importación CSV sigue en 300 filas por `insert`. `npx supabase db advisors --linked --type security`: mismo único warning preexistente desde la Fase 4 (`auth_leaked_password_protection` — configuración de Auth en el dashboard, no una migración; no se tocó sin autorización).
 
-Pendientes identificados, no corregidos en esta sesión (requieren una decisión o verificación que excede "corregí lo que pude de forma segura"):
-- `/dev/design-system` queda sin proteger en el router (`src/app/router.tsx`) — ya estaba anotado desde la Fase 2/3 para retirarse o protegerse antes de producción; es la Fase 15 quien debe decidirlo.
-- `/transactions` y la Búsqueda global (`useTransactions`) no paginan: sin filtro de fecha traen todo el historial del usuario. Para el volumen esperado de un usuario personal no es crítico hoy, pero crecerá con el tiempo; no se implementó paginación en esta sesión porque es un cambio de UX (carga incremental) que necesita probarse con datos reales, no solo código.
-- El bundle de producción sigue sin dividir por rutas (warning de chunk >500kB desde la Fase 3): no se aplicó `React.lazy`/`route.lazy` en `router.tsx` porque cambia el comportamiento de carga de las 9 rutas y no hay forma de verificarlo en el navegador en esta sesión (sin credenciales de prueba para las pantallas autenticadas). Recomendado para la Fase 15 junto con la revisión de Vercel.
-- Esquemas zod de importe (`amount = z.number().positive()`) no tienen cota superior explícita contra el `numeric(14,2)` de la base; un importe extremo fallaría con el error real de Postgres en vez de un mensaje de formulario — cosmético, no de seguridad, no se tocó.
-- Verificación en vivo pendiente (misma limitación que Fase 13): RLS con dos usuarios reales simultáneos, formularios con errores de red real, accesibilidad con lector de pantalla real, viewport móvil real — todo revisado por código en esta sesión, no ejecutado.
+Archivos tocados en la primera tanda: `src/shared/offline/queue.ts`, `src/shared/offline/types.ts`, `src/shared/lib/csv.ts`, `src/shared/lib/csv.test.ts`, `src/features/transactions/api/useTransactions.ts`. Sin migración de base nueva. Sin cambios en `package.json`.
 
-Archivos tocados: `src/shared/offline/queue.ts`, `src/shared/offline/types.ts`, `src/shared/lib/csv.ts`, `src/shared/lib/csv.test.ts`, `src/features/transactions/api/useTransactions.ts`. Sin migración de base nueva. Sin cambios en `package.json`.
+#### Segunda tanda — resolución de pendientes con sesión de prueba real
+
+El usuario pasó credenciales de una cuenta de prueba real, lo que permitió por primera vez desde la Fase 13 verificar varios caminos en vivo contra Supabase en vez de solo por código.
+
+- **`/dev/design-system` protegida**: movida dentro del grupo de rutas `RequireAuth` en `src/app/router.tsx` — antes era pública.
+- **Code-splitting por ruta**: las 9 páginas de features (`Dashboard`, `Transactions`, `Accounts`, `Budgets`, `Reports`, `Settings`, `QuickExpense`, `ImportCsv`, `DesignSystem`) pasan a `React.lazy` + `Suspense` (helper `src/app/LazyPage.tsx`, fallback `LoadingState`). Bundle principal bajó de 1.103 kB a 782 kB (gzip 325→231 kB), con 15 chunks nuevos por ruta. Verificado en el navegador: las 9 rutas cargan y renderizan bien, sin regresión.
+- **Cota superior en importes**: `MAX_MONEY_AMOUNT` nuevo en `src/shared/lib/money.ts` (999.999.999.999,99 — el máximo de `numeric(14,2)`), aplicado con `.max()` en los 7 campos de importe de `transactions`/`budgets`/`accounts` (`schema.ts` de `transactions`, `budgets`, `accounts`).
+- **Paginación de `/transactions`**: `TransactionsPage.tsx` pasa un `limit` de 50 (antes sin límite) con botón "Cargar más" que lo incrementa de a 50 cuando la página viene llena; se resetea al cambiar cualquier filtro. La Búsqueda global de Informes ya limitaba a 50 desde la Fase 12, sin cambios ahí.
+- **`auth_leaked_password_protection`**: investigado si se podía habilitar por CLI — no es un campo de `supabase/config.toml` en esta versión del CLI (confirmado por grep sobre el archivo completo), es una configuración de plataforma que requiere la Management API con el token de acceso guardado por `supabase login`; el harness bloqueó leer ese token por seguridad y no se intentó rodear el bloqueo. **Queda pendiente — el usuario debe habilitarlo manualmente**: Dashboard de Supabase → Authentication → Policies → Password Security → activar "Leaked password protection".
+
+Verificación en vivo contra el proyecto real (cuenta de prueba provista por el usuario), con `npm run preview`:
+- Login real, navegación por las 9 rutas lazy sin errores de consola.
+- Búsqueda con `,`/`(`/`)` en el texto (antes rompía el filtro PostgREST) — ya no genera error, devuelve 0 resultados correctamente; búsqueda normal ("netflix") sigue funcionando igual que antes.
+- Toast "Nueva versión disponible" del service worker (modo `prompt`, Fase 13) probado de punta a punta: actualizar no perdió la sesión ni recargó a ciegas.
+- **Flujo offline completo end-to-end, por primera vez con sesión real** (pendiente desde la Fase 13): se interceptó `fetch` para simular error de red, se guardó un gasto desde `/quick-expense` → quedó "pendiente de enviar" (nunca mostrado como confirmado, tal como exige la regla global), se restauró `fetch` y se disparó el evento `online` → sincronizó solo, sin intervención; verificado en `/transactions` que el movimiento aparece **una sola vez**, sin duplicado. Confirma en vivo lo que `sync.test.ts` (Fase 13) ya cubría con `fake-indexeddb`.
+- Durante la prueba del camino "error permanente no bloquea la cola" (insertar una operación con una cuenta inexistente para forzar un `23503` real de Postgres), la manipulación directa de IndexedDB desde varias pestañas del navegador dejó conexiones abiertas que bloquearon un `deleteDatabase` propio y congelaron momentáneamente el render de la app (pantalla en blanco, sin errores en consola — causado por la herramienta de prueba, no por el código de la aplicación). Se resolvió cerrando las pestañas huérfanas; los datos reales del usuario no se perdieron ni se corrompieron (se verificó el total de gastos del mes intacto tras la recuperación). Por este incidente no se completó la demostración en vivo de ese camino específico — queda cubierto únicamente por `sync.test.ts` (Fase 13), no por ejecución real esta vez.
+
+Pendientes reales que siguen abiertos:
+- `auth_leaked_password_protection`: requiere acción manual del usuario en el Dashboard de Supabase (ver arriba) — no es alcanzable desde este entorno sin exponer el token de acceso de la CLI.
+- RLS con dos usuarios reales simultáneos: se cuenta solo con una cuenta de prueba en esta sesión; la política en sí no cambió desde su verificación en la Fase 4 (con dos cuentas reales distintas), así que el riesgo de regresión es bajo, pero no se re-ejecutó en vivo.
+- Accesibilidad con lector de pantalla real y viewport móvil real: sin verificar en ningún momento del proyecto, misma limitación de herramienta que las Fases 7-13.
+
+Archivos tocados en la segunda tanda: `src/app/router.tsx`, `src/app/LazyPage.tsx` (nuevo), `src/shared/lib/money.ts`, `src/features/transactions/schema.ts`, `src/features/budgets/schema.ts`, `src/features/accounts/schema.ts`, `src/features/transactions/TransactionsPage.tsx`. Sin migración de base nueva. Sin cambios en `package.json`.
 
 ### ⬜ Fase 15
 Sin empezar.

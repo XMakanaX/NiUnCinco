@@ -1,7 +1,11 @@
 import { z } from 'zod';
+import { MAX_MONEY_AMOUNT } from '@/shared/lib/money';
 
 const currency = z.enum(['CRC', 'USD'], { error: 'Elegí una moneda' });
-const amount = z.number({ error: 'Ingresá un importe' }).positive('El importe debe ser mayor a 0');
+const amount = z
+  .number({ error: 'Ingresá un importe' })
+  .positive('El importe debe ser mayor a 0')
+  .max(MAX_MONEY_AMOUNT, 'Importe demasiado grande');
 const occurredOn = z.string().min(1, 'Elegí una fecha');
 const notes = z.string().trim().max(280, 'Máximo 280 caracteres').nullable();
 const tags = z.array(z.string().trim().min(1).max(30)).max(10, 'Máximo 10 etiquetas');

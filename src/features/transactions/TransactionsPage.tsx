@@ -19,6 +19,9 @@ import {
 } from '@/features/transactions/components/TransactionFilters';
 
 const ALL = '__all__';
+/** Sin esto, `/transactions` sin filtro traería todo el historial del
+ * usuario en una sola consulta — crece sin límite con el tiempo. */
+const PAGE_SIZE = 50;
 
 const DEFAULT_FILTERS: TransactionFiltersValue = {
   search: '',
@@ -37,8 +40,11 @@ export function TransactionsPage() {
   const [cardPaymentOpen, setCardPaymentOpen] = useState(false);
 
   const [filterValue, setFilterValue] = useState<TransactionFiltersValue>(DEFAULT_FILTERS);
-  const updateFilters = (next: Partial<TransactionFiltersValue>) =>
+  const [visibleLimit, setVisibleLimit] = useState(PAGE_SIZE);
+  const updateFilters = (next: Partial<TransactionFiltersValue>) => {
+    setVisibleLimit(PAGE_SIZE);
     setFilterValue((prev) => ({ ...prev, ...next }));
+  };
 
   const { data: accounts = [] } = useAccounts();
   const { data: cards = [] } = useCards();
@@ -53,8 +59,9 @@ export function TransactionsPage() {
       categoryId: filterValue.categoryId === ALL ? undefined : filterValue.categoryId,
       type: filterValue.type === ALL ? undefined : (filterValue.type as TransactionType),
       search: filterValue.search.trim() || undefined,
+      limit: visibleLimit,
     }),
-    [filterValue],
+    [filterValue, visibleLimit],
   );
 
   const { data: transactions, isPending, isError } = useTransactions(filters);
@@ -128,6 +135,16 @@ export function TransactionsPage() {
                   categoryName={transaction.category_id ? categoryNameById.get(transaction.category_id) ?? null : null}
                 />
               ))}
+              {transactions.length === visibleLimit ? (
+                <Button
+                  intent="secondary"
+                  size="sm"
+                  className="self-center"
+                  onClick={() => setVisibleLimit((prev) => prev + PAGE_SIZE)}
+                >
+                  Cargar más
+                </Button>
+              ) : null}
             </div>
           )}
         </>
