@@ -274,7 +274,9 @@ Pendiente, todo requiere autorización explícita antes de ejecutarse: crear pro
 
 **Actualización 2026-10-30 (cierre):** protección de Vercel Authentication desactivada (`vercel project protection disable --sso`, autorizado explícitamente) — deployment ahora público. Registro y login real probados por el usuario contra prod: primer intento con typo en el correo (por eso no llegó el mail de confirmación), segundo intento con el correo correcto funcionó — confirmación por correo y login verificados en vivo contra `NiUnCinco-prod`.
 
-Pendiente, requiere autorización explícita: dominio propio y DNS, conectar integración git para deploys automáticos (`vercel link --repo` falló al conectar el repo de GitHub, ver arriba).
+Pendiente, requiere autorización explícita: dominio propio y DNS.
+
+**Actualización 2026-10-30 (integración git):** conectada desde el dashboard de Vercel (el CLI — `vercel git connect` y `vercel link --repo`, ambos alpha/con bug — nunca lo logró: fallaba porque el repo de GitHub se había renombrado de `AppFinanzas` a `NiUnCinco` y el remote local seguía apuntando al nombre viejo; conectar manualmente desde la UI, que resuelve el repo por selección en vez de por URL, sí funcionó). Deploys automáticos activos: cada push a la rama de producción dispara un build en Vercel. Remote local (`git remote -v`) sigue en `.../AppFinanzas.git` — GitHub redirige al nombre nuevo así que push/fetch funcionan igual; cambiarlo a `.../NiUnCinco.git` es cosmético, pendiente si el usuario quiere hacerlo (bloqueado para este asistente por el clasificador de acciones, es cambio de config de git).
 
 ---
 

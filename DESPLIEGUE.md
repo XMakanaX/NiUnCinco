@@ -136,7 +136,7 @@ Instrucciones completas (con capturas conceptuales) ya en `README.md`.
 **Pendiente, requiere autorización explícita:**
 
 8. Configurar dominio propio y DNS si corresponde — no incluido en esta preparación.
-9. Conectar integración git (`vercel git connect`) para que los pushes a la rama de producción disparen deploy automático — hoy los deploys son manuales vía `vercel deploy`.
+9. ✅ Integración git conectada (desde el dashboard de Vercel — el CLI fallaba porque el repo de GitHub se renombró de `AppFinanzas` a `NiUnCinco` y el remote local apuntaba al nombre viejo). Cada push a la rama de producción ahora dispara deploy automático.
 10. Volver a activar la protección de Vercel Authentication (o configurar protección por contraseña) antes de dejar la app con datos reales de usuarios — hoy está pública a propósito, para poder probar el registro.
 
 **Actualizaciones posteriores:** cada push a la rama de producción en Vercel dispara un build nuevo automático (`npm run build`, que ya incluye `tsc -b`). El service worker usa `registerType: 'prompt'` — los usuarios con la PWA instalada ven un toast "Nueva versión disponible" en vez de recargar solos, para no perder un formulario a medio llenar. Si una actualización agrega una migración nueva, aplicarla a prod con `supabase db push` **antes** de que el deploy del frontend que la necesita quede activo (evitar que el frontend nuevo le pida a la base una función/columna que todavía no existe).
