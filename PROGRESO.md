@@ -16,7 +16,7 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 8 | Dashboard financiero | ✅ | 2026-10-29 | `423bf53` |
 | 9 | Presupuestos, recurrencias y metas | ✅ | 2026-10-29 | `8def2fb` |
 | 10 | Pagos y ciclo de tarjetas de crédito | ✅ | 2026-10-29 | `70a4dae` |
-| 11 | Importación de CSV | ✅ | 2026-10-30 | `(pendiente de commit)` |
+| 11 | Importación de CSV | ✅ | 2026-10-30 | `a50436d` |
 | 12 | Informes, búsqueda y exportación | ⬜ | — | — |
 | 13 | PWA y funcionamiento sin conexión | ⬜ | — | — |
 | 14 | Auditoría, seguridad y pruebas | ⬜ | — | — |
