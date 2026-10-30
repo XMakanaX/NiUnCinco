@@ -15,8 +15,8 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 7 | Registro rápido y atajo de iPhone | ✅ | 2026-10-29 | `24170cc` |
 | 8 | Dashboard financiero | ✅ | 2026-10-29 | `423bf53` |
 | 9 | Presupuestos, recurrencias y metas | ✅ | 2026-10-29 | `8def2fb` |
-| 10 | Pagos y ciclo de tarjetas de crédito | ✅ | 2026-10-29 | `(pendiente de commit)` |
-| 11 | Importación de CSV | ⬜ | — | — |
+| 10 | Pagos y ciclo de tarjetas de crédito | ✅ | 2026-10-29 | `70a4dae` |
+| 11 | Importación de CSV | ✅ | 2026-10-30 | `(pendiente de commit)` |
 | 12 | Informes, búsqueda y exportación | ⬜ | — | — |
 | 13 | PWA y funcionamiento sin conexión | ⬜ | — | — |
 | 14 | Auditoría, seguridad y pruebas | ⬜ | — | — |
@@ -165,7 +165,18 @@ Verificado: `npm run lint`, `npm run typecheck`, `npm run build` sin errores; `n
 
 Pendiente: verificar en hardware móvil real (misma limitación de las fases anteriores); re-probar "Anular pago" en un navegador real o con el usuario antes de confiar en ese camino.
 
-### ⬜ Fases 11-15
+### ✅ Fase 11 — Importación de CSV
+Sin migración nueva: la idempotencia reutiliza el `unique(user_id, client_id)` de `transactions` (Fase 4) — `client_id` se calcula como un hash SHA-256 determinístico de (usuario, cuenta, fecha, importe, moneda, tipo, comercio) vía Web Crypto (`features/import-csv/lib/fingerprint.ts`), así que reimportar el mismo archivo produce los mismos `client_id` y el envío se hace con `upsert(..., { onConflict: 'user_id,client_id', ignoreDuplicates: true })`: Postgres descarta en silencio las filas repetidas y `enviadas - devueltas` da el conteo exacto de "omitidas por duplicado exacto" sin consultas extra.
+
+Parser CSV propio en `shared/lib/csv.ts` (sin dependencia nueva — comillas, comas/saltos de línea embebidos, CRLF, detección de separador por las primeras líneas) con 10 tests. Wizard en `/transactions/import` (no enlazado al nav de 6 ítems, accedido con el botón "Importar CSV" de `/transactions`): 1) archivo (lectura en memoria con `File.text()`, nunca subido a Storage, límite 5MB, descartado tras parsear) → 2) mapeo de columnas (fecha con 5 formatos soportados, descripción opcional, importe con separador decimal elegido, moneda opcional con moneda por defecto, y 5 convenciones de signo para ingreso/gasto incluyendo columna de tipo propia con valores configurables — "no supongás el mismo formato de banco") → 3) validación fila por fila (un error nunca descarta las demás) con detección de "posibles duplicados" (mismo importe/fecha/moneda/tipo en la cuenta, aunque el comercio difiera — excluidos por defecto, revisión explícita para incluirlos) → 4) confirmación explícita → 5) reporte con filas del archivo, rechazadas, excluidas por posible duplicado, enviadas, importadas y omitidas por duplicado exacto.
+
+Durante las pruebas en navegador se encontró y corrigió un bug real de UX: los `Select` de Base UI muestran el ítem resaltado alineado sobre el trigger nada más abrir el popup (como un `<select>` nativo) — un solo clic en el trigger no confirma la selección, hace falta un segundo clic sobre el ítem o `Enter`; se verificó con un `console.log` temporal en `onValueChange` que el valor real no cambiaba hasta ese segundo paso. No es un bug de esta fase ni del componente `Select` compartido (se confirmó reproduciéndolo también en `/dev/design-system`), sino el comportamiento esperado de Base UI — queda documentado acá porque llevó la mayor parte del tiempo de prueba manual. Sí se corrigió un problema real encontrado en el camino: `MappingStep` recreaba los arrays de opciones de los `Select` en cada render sin `useMemo` (a diferencia de `columnOptions`, que sí lo tenía desde el principio) — ahora todos están memoizados.
+
+Verificado: `npm run lint` (0 errores), `npm run typecheck` (sin errores), `npm run test` (92/92 — 34 tests nuevos: `csv.test.ts`, y 4 archivos de test en `features/import-csv/lib/`) y `npm run build` sin errores. `supabase db advisors --linked --type security` sin hallazgos nuevos (mismo warning preexistente de Auth). Probado en el navegador contra el proyecto real con cuenta "Efectivo Prueba": CSV con comillas/comas embebidas en una columna de texto (parseo correcto), importación de 3 movimientos reales (gasto, ingreso, gasto — verificados en `/transactions` con los montos y fechas exactos del archivo); reimportar el mismo archivo detectó las 3 filas como posible duplicado (excluidas por defecto); forzando su inclusión, el envío a Supabase devolvió 0 importadas / 3 omitidas por duplicado exacto (idempotencia real confirmada contra la base, no solo en memoria); archivo con fecha inválida (31/02) e importe inválido ("abc") rechazó esas 2 filas con el motivo exacto y igual importó la fila válida restante; archivo vacío mostró "El archivo está vacío" sin avanzar. Datos de prueba (3 movimientos importados en "Efectivo Prueba") se dejaron en el proyecto real como evidencia funcional.
+
+Pendiente: no se probó en viewport móvil real (misma limitación de herramienta ya anotada en fases anteriores); no se probó un CSV realmente grande (miles de filas) de punta a punta, aunque el envío a Supabase ya está en lotes de 300 filas por `insert` para ese caso; informes/exportación CSV quedan para la Fase 12.
+
+### ⬜ Fases 12-15
 Sin empezar.
 
 ---

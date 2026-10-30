@@ -11,6 +11,7 @@ import { BudgetsPage } from '@/features/budgets/BudgetsPage';
 import { ReportsPage } from '@/features/reports/ReportsPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 import { QuickExpensePage } from '@/features/quick-expense/QuickExpensePage';
+import { ImportCsvPage } from '@/features/import-csv/ImportCsvPage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { RegisterPage } from '@/features/auth/RegisterPage';
 import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage';
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: 'transactions', element: <TransactionsPage /> },
+          { path: 'transactions/import', element: <ImportCsvPage /> },
           { path: 'accounts', element: <AccountsPage /> },
           { path: 'budgets', element: <BudgetsPage /> },
           { path: 'reports', element: <ReportsPage /> },

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { ArrowLeftRight, CreditCard, Plus, TrendingDown } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { ArrowLeftRight, CreditCard, FileUp, Plus, TrendingDown } from 'lucide-react';
 import { EmptyState } from '@/shared/ui/EmptyState';
 import { LoadingState } from '@/shared/ui/LoadingState';
 import { PageMessage } from '@/shared/ui/PageMessage';
@@ -30,6 +31,7 @@ const DEFAULT_FILTERS: TransactionFiltersValue = {
 };
 
 export function TransactionsPage() {
+  const navigate = useNavigate();
   const [movementOpen, setMovementOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [cardPaymentOpen, setCardPaymentOpen] = useState(false);
@@ -80,6 +82,10 @@ export function TransactionsPage() {
             <Button size="sm" intent="secondary" onClick={() => setCardPaymentOpen(true)}>
               <CreditCard className="size-4" aria-hidden />
               Pago de tarjeta
+            </Button>
+            <Button size="sm" intent="secondary" onClick={() => navigate('/transactions/import')}>
+              <FileUp className="size-4" aria-hidden />
+              Importar CSV
             </Button>
           </div>
         ) : null}
