@@ -19,7 +19,7 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 11 | Importación de CSV | ✅ | 2026-10-30 | `a50436d` |
 | 12 | Informes, búsqueda y exportación | ✅ | 2026-10-30 | `b484637` |
 | 13 | PWA y funcionamiento sin conexión | 🟡 | 2026-10-30 | `94345bc` |
-| 14 | Auditoría, seguridad y pruebas | 🟡 | 2026-10-30 | `38f88ff`/`16c13a1` |
+| 14 | Auditoría, seguridad y pruebas | ✅ | 2026-10-30 | `38f88ff`/`16c13a1`/_pendiente_ |
 | 15 | Preparación de despliegue y entrega | ⬜ | — | — |
 
 ---
@@ -204,8 +204,8 @@ Verificado: `npm run lint` (0 errores), `npm run typecheck` (sin errores), `npm 
 
 Pendiente: verificación end-to-end autenticada (offline → reconexión → sin duplicados; error permanente; cambio de usuario) con credenciales reales; verificación en hardware real (iPhone/Android) — instalación, safe areas, modo avión; iconos de marca reales en mayor resolución y screenshots para el manifest (quedaron fuera de alcance, ver nota de assets arriba); `git diff package.json` debe revisarse antes de dar por cerrado el commit (2 dependencias nuevas: `@tanstack/react-query-persist-client` en `dependencies`, `fake-indexeddb` en `devDependencies`).
 
-### 🟡 Fase 14 — Auditoría, seguridad y pruebas
-Marcada parcial: igual que Fase 13, no hay credenciales de prueba en esta sesión para ejercitar el flujo autenticado real (RLS con dos usuarios en vivo, formularios, doble envío en navegador) — la auditoría de esos puntos fue por código/migraciones, no por ejecución end-to-end.
+### ✅ Fase 14 — Auditoría, seguridad y pruebas
+Cerrada en una tercera tanda, tras obtener credenciales de dos cuentas reales distintas, lo que permitió completar la verificación de RLS en vivo que faltaba (ver más abajo). Quedan dos limitaciones estructurales documentadas, no bloqueantes: `auth_leaked_password_protection` requiere plan Pro de Supabase (el proyecto está en Free) y accesibilidad con lector de pantalla/viewport móvil real nunca se pudo probar en ninguna fase del proyecto por una limitación de la herramienta de automatización del navegador — mismo criterio que cerró Fases 7-13 con la validación en hardware real pendiente.
 
 Base verificada antes de tocar nada: `npm run lint` (0 errores), `npm run typecheck` (sin errores). `npm run test` encontró **1 fallo real** (no flaky de infraestructura): `queue.test.ts` → "ordena por fecha de creación ascendente" fallaba porque `listOps` (`src/shared/offline/queue.ts`) ordenaba solo por `createdAt` (string ISO, resolución de milisegundo); `getAllFromIndex` por `userId` devuelve empates en orden de la clave primaria (un UUID aleatorio), no de inserción, así que dos operaciones encoladas en el mismo milisegundo (p. ej. guardar dos gastos offline muy rápido) podían sincronizarse en orden incorrecto. Corregido agregando `PendingOp.seq` (contador monotónico, `src/shared/offline/types.ts`) como desempate en `listOps`; test nuevo no necesario, el existente ya lo cubre y ahora pasa de forma determinística. Tras el fix: `npm run test` 119/119 (incluye el test nuevo de inyección de fórmulas CSV descrito abajo), `npm run build` sin errores (mismo warning preexistente de chunk >500kB).
 
@@ -236,7 +236,7 @@ Verificación en vivo contra el proyecto real (cuenta de prueba provista por el 
 
 Pendientes reales que siguen abiertos:
 - `auth_leaked_password_protection`: bloqueado por el plan Free de Supabase (ver arriba) — requiere subir a Pro, decisión del usuario.
-- RLS con dos usuarios reales simultáneos: se cuenta solo con una cuenta de prueba en esta sesión; la política en sí no cambió desde su verificación en la Fase 4 (con dos cuentas reales distintas), así que el riesgo de regresión es bajo, pero no se re-ejecutó en vivo.
+- ~~RLS con dos usuarios reales simultáneos~~ — **resuelto**: el usuario registró una segunda cuenta real (`makaxstreet@gmail.com`) y la re-verificación se hizo en dos capas. (1) REST directo: con el token de la segunda cuenta (B) contra la cuenta real de la primera (A, "Efectivo Prueba"): `GET /accounts` sin filtro devuelve `[]` (B no ve ninguna cuenta de A), `GET /accounts?id=eq.<id de A>` devuelve `[]`, `PATCH` (intento de renombrar a "HACKEADO") devuelve `[]` (0 filas afectadas), `DELETE` devuelve `[]` (0 filas afectadas), `GET /transactions` devuelve `[]`; se confirmó después, con el token de A, que la cuenta siguió con su nombre original. (2) UI real: login como B en el navegador — dashboard muestra "Todavía no hay movimientos" y el estado vacío real, sin rastro de los ₡71.389/Visa Prueba F10/Netflix de A. Aislamiento de RLS confirmado en vivo, no solo por código.
 - Accesibilidad con lector de pantalla real y viewport móvil real: sin verificar en ningún momento del proyecto, misma limitación de herramienta que las Fases 7-13.
 
 Archivos tocados en la segunda tanda: `src/app/router.tsx`, `src/app/LazyPage.tsx` (nuevo), `src/shared/lib/money.ts`, `src/features/transactions/schema.ts`, `src/features/budgets/schema.ts`, `src/features/accounts/schema.ts`, `src/features/transactions/TransactionsPage.tsx`. Sin migración de base nueva. Sin cambios en `package.json`.
