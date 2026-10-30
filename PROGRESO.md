@@ -20,7 +20,7 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 12 | Informes, búsqueda y exportación | ✅ | 2026-10-30 | `b484637` |
 | 13 | PWA y funcionamiento sin conexión | 🟡 | 2026-10-30 | `94345bc` |
 | 14 | Auditoría, seguridad y pruebas | ✅ | 2026-10-30 | `38f88ff`/`16c13a1`/`6d00b88`/`71f4a29` |
-| 15 | Preparación de despliegue y entrega | ⬜ | — | — |
+| 15 | Preparación de despliegue y entrega | 🟡 | 2026-10-30 | — |
 
 ---
 
@@ -257,10 +257,16 @@ Pendiente real que queda, y es definitivo para este entorno: un lector de pantal
 
 Archivos tocados en la cuarta tanda: `src/features/quick-expense/QuickExpensePage.tsx`, `src/features/auth/LoginPage.tsx`, `src/features/auth/RegisterPage.tsx`, `src/features/auth/ResetPasswordPage.tsx`, `src/features/auth/UpdatePasswordPage.tsx`, `src/app/DesignSystemPage.tsx`. Sin migración de base nueva. Sin cambios en `package.json`.
 
-### ⬜ Fase 15
-Sin empezar.
+### 🟡 Fase 15 — Preparación de despliegue y entrega
+Marcada parcial: preparación y documentación completas, **sin desplegar nada a producción** (ni Vercel ni DNS), tal como pide el criterio de aceptación. Documento completo de los 10 puntos pedidos por el plan maestro: `DESPLIEGUE.md`.
 
-Adelanto de infraestructura (2026-10-30, fuera del alcance formal de la fase, a pedido explícito del usuario): proyecto Supabase existente (antes "AppFinanzas") renombrado a **NiUnCinco** y confirmado como entorno **dev** — es el mismo que usa `.env.local` y el que tiene todos los datos de prueba de las Fases 4-14. Proyecto nuevo **NiUnCinco-prod** creado vacío (ref `zxkujqpozhttzsgyscal`, región us-east-2, misma organización, plan Free) como entorno de **producción** — sin migraciones aplicadas todavía, sin `.env.production` ni variables en Vercel configuradas. Password de la base de prod entregada al usuario una sola vez en el chat, no guardada en ningún archivo del repo.
+Infraestructura Supabase (2026-10-30, adelantada en la sesión anterior a pedido explícito del usuario, documentada acá): proyecto existente (antes "AppFinanzas") renombrado a **NiUnCinco**, confirmado como entorno **dev** — mismo que usa `.env.local` y tiene todos los datos de prueba de las Fases 4-14. Proyecto nuevo **NiUnCinco-prod** creado vacío (ref `zxkujqpozhttzsgyscal`, región us-east-2, misma organización, plan Free) como entorno de **producción** — sin migraciones aplicadas todavía. Password de la base de prod entregada al usuario una sola vez en el chat, no guardada en ningún archivo del repo.
+
+Corregido en esta sesión: `site_url` de Auth del proyecto dev estaba mal configurado (`http://localhost:3000`, no coincidía con el puerto real de Vite) — corregido a `http://localhost:5173`, y se agregó `uri_allow_list` (`http://localhost:5173/**,http://localhost:4173/**`), antes vacía. Equivalente para prod queda pendiente hasta tener el dominio real de Vercel (ver `DESPLIEGUE.md` §4).
+
+Verificado: `npm run lint` (sin errores), `npm run typecheck` (sin errores), `npm run test` (119/119), `npm run build` (éxito, mismo warning preexistente de chunk >500kB). `npx supabase db advisors --linked --type security` sobre el proyecto dev: mismo único warning preexistente (`auth_leaked_password_protection`, bloqueado por plan Free). `vercel.json` ya tenía rewrites SPA y headers de seguridad (CSP con `*.supabase.co`) de una fase anterior — revisado, sin cambios necesarios. `.gitignore` confirmado: `.env.local`/`.env.*.local` ignorados.
+
+Pendiente, todo requiere autorización explícita antes de ejecutarse: crear proyecto en Vercel, configurar sus variables de entorno por ambiente, aplicar las 7 migraciones a `NiUnCinco-prod`, primer deploy, configurar `site_url`/`uri_allow_list` de prod con el dominio real, probar registro/login real contra prod, dominio propio y DNS. Detalle completo del procedimiento paso a paso: `DESPLIEGUE.md` §9. Sin verificación en hardware móvil real ni con lector de pantalla físico (misma limitación de herramienta de todo el proyecto, ver `DESPLIEGUE.md` §10).
 
 ---
 
