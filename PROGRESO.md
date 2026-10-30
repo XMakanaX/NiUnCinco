@@ -260,6 +260,8 @@ Archivos tocados en la cuarta tanda: `src/features/quick-expense/QuickExpensePag
 ### ⬜ Fase 15
 Sin empezar.
 
+Adelanto de infraestructura (2026-10-30, fuera del alcance formal de la fase, a pedido explícito del usuario): proyecto Supabase existente (antes "AppFinanzas") renombrado a **NiUnCinco** y confirmado como entorno **dev** — es el mismo que usa `.env.local` y el que tiene todos los datos de prueba de las Fases 4-14. Proyecto nuevo **NiUnCinco-prod** creado vacío (ref `zxkujqpozhttzsgyscal`, región us-east-2, misma organización, plan Free) como entorno de **producción** — sin migraciones aplicadas todavía, sin `.env.production` ni variables en Vercel configuradas. Password de la base de prod entregada al usuario una sola vez en el chat, no guardada en ningún archivo del repo.
+
 ---
 
 ## Cómo actualizar este archivo
