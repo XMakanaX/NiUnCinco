@@ -45,8 +45,8 @@ export function CategoryListItem({
         aria-hidden
       />
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="truncate font-medium text-ink">{category.name}</span>
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="min-w-0 truncate font-medium text-ink">{category.name}</span>
           <Badge className="shrink-0" tone={category.kind === 'income' ? 'income' : 'expense'}>
             {category.kind === 'income' ? 'Ingreso' : 'Gasto'}
           </Badge>

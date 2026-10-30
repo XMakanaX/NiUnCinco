@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Archive, ArchiveRestore, Pencil, Trash2 } from 'lucide-react';
+import { Archive, ArchiveRestore, Pencil, Trash2, Wallet, Landmark, PiggyBank } from 'lucide-react';
 import { Card } from '@/shared/ui/Card';
 import { Badge } from '@/shared/ui/Badge';
 import { Money } from '@/shared/ui/Money';
@@ -15,11 +15,19 @@ const TYPE_LABEL: Record<Account['type'], string> = {
   other: 'Otra',
 };
 
+const TYPE_ICON: Record<Account['type'], typeof Wallet> = {
+  cash: Wallet,
+  bank: Landmark,
+  other: PiggyBank,
+};
+
 export function AccountListItem({ account, onEdit }: { account: Account; onEdit: () => void }) {
   const archiveAccount = useArchiveAccount();
   const deleteAccount = useDeleteAccount();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const archived = Boolean(account.archived_at);
+  const TypeIcon = TYPE_ICON[account.type];
+  const tintColor = account.color ?? 'var(--brand)';
 
   const handleDelete = async () => {
     try {
@@ -38,35 +46,41 @@ export function AccountListItem({ account, onEdit }: { account: Account; onEdit:
   };
 
   return (
-    <Card className="flex items-center gap-3">
-      <span
-        className="size-3 shrink-0 rounded-full"
-        style={{ backgroundColor: account.color ?? 'var(--border)' }}
-        aria-hidden
-      />
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="truncate font-medium text-ink">{account.name}</span>
-          {archived ? <Badge className="shrink-0" tone="neutral">Archivada</Badge> : null}
-        </div>
-        <span className="truncate text-xs text-ink-muted">{TYPE_LABEL[account.type]}</span>
-      </div>
-      <Money className="shrink-0" amount={account.balance} currency={account.currency} />
-      <div className="flex shrink-0 gap-1">
-        <Button intent="ghost" size="icon" aria-label="Editar" onClick={onEdit}>
-          <Pencil className="size-4" aria-hidden />
-        </Button>
-        <Button
-          intent="ghost"
-          size="icon"
-          aria-label={archived ? 'Restaurar' : 'Archivar'}
-          onClick={() => archiveAccount.mutate({ id: account.id, archived: !archived })}
+    <Card className="flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="flex min-w-0 items-center gap-3">
+        <span
+          className="flex size-10 shrink-0 items-center justify-center rounded-[var(--radius-sm)]"
+          style={{ backgroundColor: `color-mix(in srgb, ${tintColor} 16%, transparent)` }}
+          aria-hidden
         >
-          {archived ? <ArchiveRestore className="size-4" aria-hidden /> : <Archive className="size-4" aria-hidden />}
-        </Button>
-        <Button intent="ghost" size="icon" aria-label="Eliminar" onClick={() => setConfirmDelete(true)}>
-          <Trash2 className="size-4" aria-hidden />
-        </Button>
+          <TypeIcon className="size-5" style={{ color: tintColor }} aria-hidden />
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="min-w-0 truncate font-medium text-ink">{account.name}</span>
+            {archived ? <Badge className="shrink-0" tone="neutral">Archivada</Badge> : null}
+          </div>
+          <span className="truncate text-xs text-ink-muted">{TYPE_LABEL[account.type]}</span>
+        </div>
+      </div>
+      <div className="flex items-center justify-between gap-3 sm:ml-auto sm:justify-end">
+        <Money className="shrink-0" amount={account.balance} currency={account.currency} />
+        <div className="flex shrink-0 gap-1">
+          <Button intent="ghost" size="icon" aria-label="Editar" onClick={onEdit}>
+            <Pencil className="size-4" aria-hidden />
+          </Button>
+          <Button
+            intent="ghost"
+            size="icon"
+            aria-label={archived ? 'Restaurar' : 'Archivar'}
+            onClick={() => archiveAccount.mutate({ id: account.id, archived: !archived })}
+          >
+            {archived ? <ArchiveRestore className="size-4" aria-hidden /> : <Archive className="size-4" aria-hidden />}
+          </Button>
+          <Button intent="ghost" size="icon" aria-label="Eliminar" onClick={() => setConfirmDelete(true)}>
+            <Trash2 className="size-4" aria-hidden />
+          </Button>
+        </div>
       </div>
       <ConfirmDialog
         open={confirmDelete}

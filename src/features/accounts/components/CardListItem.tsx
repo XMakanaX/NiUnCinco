@@ -1,7 +1,5 @@
 import { useState } from 'react';
-import { Archive, ArchiveRestore, Receipt, Pencil, Trash2 } from 'lucide-react';
-import { Card as UiCard } from '@/shared/ui/Card';
-import { Badge } from '@/shared/ui/Badge';
+import { Archive, ArchiveRestore, Pencil, Trash2 } from 'lucide-react';
 import { Money } from '@/shared/ui/Money';
 import { Button } from '@/shared/ui/Button';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
@@ -22,6 +20,7 @@ export function CardListItem({
   const deleteCard = useDeleteCard();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const archived = Boolean(card.archived_at);
+  const canViewDetail = card.card_type === 'credit' && Boolean(onViewDetail);
 
   const handleDelete = async () => {
     try {
@@ -39,37 +38,76 @@ export function CardListItem({
     }
   };
 
+  // Degradado en el tono de la tarjeta, oscurecido hacia una esquina para
+  // que el blanco del texto siempre tenga contraste suficiente sin
+  // depender de cuál de los 8 swatches (o ninguno) haya elegido el
+  // usuario. Sin color: cae al verde de marca, que ya es oscuro.
+  const baseColor = card.color ?? 'var(--brand)';
+  const faceStyle = {
+    background: `linear-gradient(135deg, ${baseColor} 0%, color-mix(in srgb, ${baseColor} 55%, black) 100%)`,
+  };
+
+  const FaceWrapper = canViewDetail ? 'button' : 'div';
+
   return (
-    <UiCard className="flex items-center gap-3">
-      <span
-        className="size-3 shrink-0 rounded-full"
-        style={{ backgroundColor: card.color ?? 'var(--border)' }}
-        aria-hidden
-      />
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="truncate font-medium text-ink">{card.name}</span>
-          <Badge className="shrink-0" tone="brand">{card.card_type === 'credit' ? 'Crédito' : 'Débito'}</Badge>
-          {archived ? <Badge className="shrink-0" tone="neutral">Archivada</Badge> : null}
-        </div>
-        <span className="truncate text-xs text-ink-muted">{card.bank ?? 'Sin banco'}</span>
-      </div>
-      {card.card_type === 'credit' ? (
-        <div className="flex shrink-0 flex-col items-end gap-0.5">
-          <Money amount={card.balanceDue ?? 0} currency={card.currency} tone="expense" size="sm" />
-          {card.availableCredit !== null ? (
-            <span className="whitespace-nowrap text-xs text-ink-muted">
-              Disponible: <Money amount={card.availableCredit} currency={card.currency} size="sm" />
+    <div className="overflow-hidden rounded-[var(--radius-lg)] border border-border bg-surface shadow-[var(--shadow-elevation-sm)]">
+      <FaceWrapper
+        {...(canViewDetail
+          ? { type: 'button' as const, onClick: onViewDetail, 'aria-label': `Ver detalle de ${card.name}` }
+          : {})}
+        className="relative block w-full overflow-hidden p-4 text-left transition-transform duration-150 ease-[var(--ease-out)] active:scale-[0.99]"
+        style={faceStyle}
+      >
+        {/* Brillo decorativo: esquina superior derecha, evoca el reflejo
+            de una tarjeta plástica real. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -top-10 -right-10 size-32 rounded-full bg-white/15 blur-2xl"
+        />
+
+        <div className="relative flex items-start justify-between gap-2">
+          <span className="min-w-0 truncate text-[11px] font-medium tracking-wider text-white/70 uppercase">
+            {card.bank ?? 'Sin banco'}
+          </span>
+          <div className="flex shrink-0 items-center gap-1.5">
+            {archived ? (
+              <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-medium text-white/90">
+                Archivada
+              </span>
+            ) : null}
+            <span className="rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-medium text-white/90">
+              {card.card_type === 'credit' ? 'Crédito' : 'Débito'}
             </span>
-          ) : null}
+          </div>
         </div>
-      ) : null}
-      <div className="flex shrink-0 gap-1">
-        {card.card_type === 'credit' && onViewDetail ? (
-          <Button intent="ghost" size="icon" aria-label="Ver detalle" onClick={onViewDetail}>
-            <Receipt className="size-4" aria-hidden />
-          </Button>
+
+        <div className="relative mt-5 flex items-center gap-3">
+          {/* Chip EMV decorativo. */}
+          <span
+            aria-hidden
+            className="h-6 w-8 shrink-0 rounded-[4px]"
+            style={{ background: 'linear-gradient(135deg, #f6e7a8 0%, #c9a227 100%)' }}
+          />
+          <span className="min-w-0 truncate text-base font-medium tracking-wide text-white">{card.name}</span>
+        </div>
+
+        {card.card_type === 'credit' ? (
+          <div className="relative mt-5 flex items-end justify-between gap-3">
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <span className="text-[10px] tracking-wide text-white/60 uppercase">Deuda</span>
+              <Money amount={card.balanceDue ?? 0} currency={card.currency} size="sm" className="!text-white" />
+            </div>
+            {card.availableCredit !== null ? (
+              <div className="flex min-w-0 flex-col items-end gap-0.5">
+                <span className="text-[10px] tracking-wide text-white/60 uppercase">Disponible</span>
+                <Money amount={card.availableCredit} currency={card.currency} size="sm" className="!text-white" />
+              </div>
+            ) : null}
+          </div>
         ) : null}
+      </FaceWrapper>
+
+      <div className="flex items-center justify-end gap-1 border-t border-border bg-surface-sunken px-2 py-1.5">
         <Button intent="ghost" size="icon" aria-label="Editar" onClick={onEdit}>
           <Pencil className="size-4" aria-hidden />
         </Button>
@@ -85,6 +123,7 @@ export function CardListItem({
           <Trash2 className="size-4" aria-hidden />
         </Button>
       </div>
+
       <ConfirmDialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
@@ -95,6 +134,6 @@ export function CardListItem({
         loading={deleteCard.isPending || archiveCard.isPending}
         onConfirm={handleDelete}
       />
-    </UiCard>
+    </div>
   );
 }

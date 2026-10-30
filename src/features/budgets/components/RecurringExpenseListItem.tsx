@@ -66,12 +66,12 @@ export function RecurringExpenseListItem({
   };
 
   return (
-    <Card className="flex items-center gap-3">
+    <Card className="flex flex-col gap-3 sm:flex-row sm:items-center">
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="truncate font-medium text-ink">{recurringExpense.name}</span>
-          {archived ? <Badge tone="neutral">Archivado</Badge> : null}
-          {overdue ? <Badge tone="expense">Vencido</Badge> : null}
+        <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="min-w-0 truncate font-medium text-ink">{recurringExpense.name}</span>
+          {archived ? <Badge className="shrink-0" tone="neutral">Archivado</Badge> : null}
+          {overdue ? <Badge className="shrink-0" tone="expense">Vencido</Badge> : null}
           {recurringExpense.reminder_enabled ? (
             <BellRing className="size-3.5 shrink-0 text-ink-muted" aria-label="Recordatorio activado" />
           ) : null}
@@ -80,33 +80,35 @@ export function RecurringExpenseListItem({
           {FREQUENCY_LABEL[recurringExpense.frequency]} · próximo {formatDisplayDate(recurringExpense.next_due_on)}
         </span>
       </div>
-      <Money className="shrink-0" amount={recurringExpense.amount} currency={recurringExpense.currency} />
-      <div className="flex shrink-0 gap-1">
-        {!archived ? (
+      <div className="flex items-center justify-between gap-3 sm:ml-auto sm:justify-end">
+        <Money className="shrink-0" amount={recurringExpense.amount} currency={recurringExpense.currency} />
+        <div className="flex shrink-0 gap-1">
+          {!archived ? (
+            <Button
+              intent="ghost"
+              size="icon"
+              aria-label="Marcar como pagado"
+              loading={markPaid.isPending}
+              onClick={handleMarkPaid}
+            >
+              <CheckCircle2 className="size-4" aria-hidden />
+            </Button>
+          ) : null}
+          <Button intent="ghost" size="icon" aria-label="Editar" onClick={onEdit}>
+            <Pencil className="size-4" aria-hidden />
+          </Button>
           <Button
             intent="ghost"
             size="icon"
-            aria-label="Marcar como pagado"
-            loading={markPaid.isPending}
-            onClick={handleMarkPaid}
+            aria-label={archived ? 'Restaurar' : 'Archivar'}
+            onClick={() => archive.mutate({ id: recurringExpense.id, archived: !archived })}
           >
-            <CheckCircle2 className="size-4" aria-hidden />
+            {archived ? <ArchiveRestore className="size-4" aria-hidden /> : <Archive className="size-4" aria-hidden />}
           </Button>
-        ) : null}
-        <Button intent="ghost" size="icon" aria-label="Editar" onClick={onEdit}>
-          <Pencil className="size-4" aria-hidden />
-        </Button>
-        <Button
-          intent="ghost"
-          size="icon"
-          aria-label={archived ? 'Restaurar' : 'Archivar'}
-          onClick={() => archive.mutate({ id: recurringExpense.id, archived: !archived })}
-        >
-          {archived ? <ArchiveRestore className="size-4" aria-hidden /> : <Archive className="size-4" aria-hidden />}
-        </Button>
-        <Button intent="ghost" size="icon" aria-label="Eliminar" onClick={() => setConfirmDelete(true)}>
-          <Trash2 className="size-4" aria-hidden />
-        </Button>
+          <Button intent="ghost" size="icon" aria-label="Eliminar" onClick={() => setConfirmDelete(true)}>
+            <Trash2 className="size-4" aria-hidden />
+          </Button>
+        </div>
       </div>
       <ConfirmDialog
         open={confirmDelete}

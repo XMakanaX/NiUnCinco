@@ -42,6 +42,12 @@ export function TransactionListItem({
   const voided = transaction.status === 'voided';
   const tone: 'income' | 'expense' | 'neutral' =
     transaction.type === 'income' ? 'income' : transaction.type === 'expense' ? 'expense' : 'neutral';
+  const iconTile =
+    !voided && tone === 'income'
+      ? { background: 'var(--income-surface)', color: 'var(--income)' }
+      : !voided && tone === 'expense'
+        ? { background: 'var(--expense-surface)', color: 'var(--expense)' }
+        : { background: 'var(--surface-sunken)', color: 'var(--ink-muted)' };
 
   const handleVoid = async () => {
     try {
@@ -55,7 +61,7 @@ export function TransactionListItem({
 
   return (
     <Card className={`flex items-center gap-3 ${voided ? 'opacity-60' : ''}`}>
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-ink-muted">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-full" style={iconTile}>
         <Icon className="size-4" aria-hidden />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">

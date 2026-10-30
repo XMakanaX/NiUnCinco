@@ -54,14 +54,19 @@ export function BudgetListItem({ budget, categoryName, onEdit }: BudgetListItemP
         </div>
       </div>
 
-      <div className="h-2 w-full overflow-hidden rounded-full bg-surface-sunken">
-        <div
-          className="h-full rounded-full transition-[width] duration-300 ease-[var(--ease-out)]"
-          style={{
-            width: `${Math.min(pct, 100)}%`,
-            backgroundColor: overBudget ? 'var(--expense)' : 'var(--brand)',
-          }}
-        />
+      <div className="flex items-center gap-2">
+        <div className="h-2 w-full min-w-0 flex-1 overflow-hidden rounded-full bg-surface-sunken">
+          <div
+            className="h-full rounded-full transition-[width] duration-300 ease-[var(--ease-out)]"
+            style={{
+              width: `${Math.min(pct, 100)}%`,
+              backgroundColor: overBudget ? 'var(--expense)' : 'var(--brand)',
+            }}
+          />
+        </div>
+        <span className={`shrink-0 text-xs font-medium tabular-nums ${overBudget ? 'text-expense' : 'text-ink-muted'}`}>
+          {Math.round(pct)}%
+        </span>
       </div>
 
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 text-sm">

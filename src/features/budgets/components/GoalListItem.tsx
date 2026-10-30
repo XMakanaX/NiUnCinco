@@ -72,11 +72,14 @@ export function GoalListItem({ goal, onEdit, onContribute }: GoalListItemProps) 
         {archived ? <Badge tone="neutral">Archivada</Badge> : null}
       </div>
 
-      <div className="h-2 w-full overflow-hidden rounded-full bg-surface-sunken">
-        <div
-          className="h-full rounded-full bg-brand transition-[width] duration-300 ease-[var(--ease-out)]"
-          style={{ width: `${pct}%` }}
-        />
+      <div className="flex items-center gap-2">
+        <div className="h-2 w-full min-w-0 flex-1 overflow-hidden rounded-full bg-surface-sunken">
+          <div
+            className="h-full rounded-full bg-brand transition-[width] duration-300 ease-[var(--ease-out)]"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+        <span className="shrink-0 text-xs font-medium text-ink-muted tabular-nums">{Math.round(pct)}%</span>
       </div>
 
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-2 text-sm">
