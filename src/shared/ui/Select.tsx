@@ -38,7 +38,7 @@ export function Select<T extends string>({
           </BaseSelect.Icon>
         </BaseSelect.Trigger>
         <BaseSelect.Portal>
-          <BaseSelect.Positioner sideOffset={6}>
+          <BaseSelect.Positioner sideOffset={6} className="z-[60]">
             <BaseSelect.Popup className="max-h-[min(20rem,60dvh)] max-w-[calc(100vw-2rem)] min-w-[var(--anchor-width)] overflow-y-auto overscroll-contain rounded-[var(--radius-sm)] border border-border bg-surface p-1 shadow-[var(--shadow-elevation-md)] transition-[opacity,transform] duration-150 ease-[var(--ease-out)] data-[starting-style]:scale-95 data-[starting-style]:opacity-0 data-[ending-style]:scale-95 data-[ending-style]:opacity-0">
               <BaseSelect.List>
                 {options.map((option) => (
