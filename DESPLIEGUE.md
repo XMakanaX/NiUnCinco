@@ -130,11 +130,14 @@ Instrucciones completas (con capturas conceptuales) ya en `README.md`.
 4. ✅ Primer deploy (`vercel deploy`) — Vercel lo asignó a `target: production` automáticamente (comportamiento default del primer deploy, no evitable). `status: Ready`. URL: `https://ni-un-cinco-maka17.vercel.app`, protegida con Vercel Authentication.
 5. ✅ `site_url`/`uri_allow_list` de Auth en `NiUnCinco-prod` configurados con ese dominio real.
 
-**Pendiente, requiere autorización explícita antes de cada paso marcado 🔒:**
+6. ✅ Protección de Vercel Authentication desactivada (`vercel project protection disable --sso`, autorizado explícitamente) — el deployment quedó público, sin login de Vercel para visitarlo.
+7. ✅ Registro y login real probados por el usuario contra prod (la política de este asistente no permite crear cuentas en un dominio sin etiqueta de test/staging, así que lo hizo el propio usuario): primer intento falló por typo en el correo, no llegó la confirmación; segundo intento con el correo correcto — confirmación por correo y login funcionaron.
 
-6. 🔒 Probar en el dominio real: registro con confirmación por correo, login, un gasto rápido, instalación de la PWA (implica crear una cuenta real contra prod, y probablemente desactivar la protección de Vercel Authentication para poder abrirlo sin login de Vercel).
-7. Configurar dominio propio y DNS si corresponde — **requiere autorización explícita, no incluido en esta preparación**.
-8. Conectar integración git (`vercel git connect`) para que los pushes a la rama de producción disparen deploy automático — hoy los deploys son manuales vía `vercel deploy`.
+**Pendiente, requiere autorización explícita:**
+
+8. Configurar dominio propio y DNS si corresponde — no incluido en esta preparación.
+9. Conectar integración git (`vercel git connect`) para que los pushes a la rama de producción disparen deploy automático — hoy los deploys son manuales vía `vercel deploy`.
+10. Volver a activar la protección de Vercel Authentication (o configurar protección por contraseña) antes de dejar la app con datos reales de usuarios — hoy está pública a propósito, para poder probar el registro.
 
 **Actualizaciones posteriores:** cada push a la rama de producción en Vercel dispara un build nuevo automático (`npm run build`, que ya incluye `tsc -b`). El service worker usa `registerType: 'prompt'` — los usuarios con la PWA instalada ven un toast "Nueva versión disponible" en vez de recargar solos, para no perder un formulario a medio llenar. Si una actualización agrega una migración nueva, aplicarla a prod con `supabase db push` **antes** de que el deploy del frontend que la necesita quede activo (evitar que el frontend nuevo le pida a la base una función/columna que todavía no existe).
 

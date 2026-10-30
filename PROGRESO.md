@@ -272,7 +272,9 @@ Pendiente, todo requiere autorización explícita antes de ejecutarse: crear pro
 
 **Actualización 2026-10-30 (continuación, autorizado explícitamente paso por paso):** las 7 migraciones se aplicaron a `NiUnCinco-prod` — `supabase link` dio error de privilegios con el token de gestión, se aplicaron directo con `supabase db push --db-url` contra la connection string del pooler (`aws-0-us-east-2.pooler.supabase.com`, el host directo `db.*.supabase.co` no resuelve por DNS desde este entorno). `site_url`/`uri_allow_list` de Auth configurados en prod con el dominio real del deploy (`https://ni-un-cinco-maka17.vercel.app` + patrón de previews propio, sin wildcard abierto a `*.vercel.app` de terceros).
 
-Pendiente, requiere autorización explícita: probar registro/login real contra prod (la protección de Vercel Authentication del deployment lo bloquea para visitantes sin sesión de Vercel — habría que desactivarla para probarlo de verdad), dominio propio y DNS, conectar integración git para deploys automáticos.
+**Actualización 2026-10-30 (cierre):** protección de Vercel Authentication desactivada (`vercel project protection disable --sso`, autorizado explícitamente) — deployment ahora público. Registro y login real probados por el usuario contra prod: primer intento con typo en el correo (por eso no llegó el mail de confirmación), segundo intento con el correo correcto funcionó — confirmación por correo y login verificados en vivo contra `NiUnCinco-prod`.
+
+Pendiente, requiere autorización explícita: dominio propio y DNS, conectar integración git para deploys automáticos (`vercel link --repo` falló al conectar el repo de GitHub, ver arriba).
 
 ---
 
