@@ -32,7 +32,7 @@ export function ResetPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-dvh items-center justify-center p-4">
+    <main className="flex min-h-dvh items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <Logo className="mb-6" withWordmark />
         <h1 className="text-xl font-semibold text-ink">Recuperar contraseña</h1>
@@ -59,6 +59,6 @@ export function ResetPasswordPage() {
           Volver a iniciar sesión
         </Link>
       </div>
-    </div>
+    </main>
   );
 }

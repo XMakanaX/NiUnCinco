@@ -21,7 +21,7 @@ export function DesignSystemPage() {
   const [accountType, setAccountType] = useState<'cash' | 'bank' | 'credit' | null>(null);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-10 p-6 pb-24">
+    <main className="mx-auto max-w-3xl space-y-10 p-6 pb-24">
       <header className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-ink">Sistema de diseño</h1>
         <ThemeToggle />
@@ -141,7 +141,7 @@ export function DesignSystemPage() {
           </Card>
         </div>
       </Section>
-    </div>
+    </main>
   );
 }
 

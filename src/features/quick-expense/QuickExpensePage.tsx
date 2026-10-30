@@ -154,15 +154,15 @@ export function QuickExpensePage() {
 
   if (loading) {
     return (
-      <div className="min-h-dvh bg-surface-sunken p-4 pt-[calc(1rem+env(safe-area-inset-top))]">
+      <main className="min-h-dvh bg-surface-sunken p-4 pt-[calc(1rem+env(safe-area-inset-top))]">
         <LoadingState rows={4} />
-      </div>
+      </main>
     );
   }
 
   if (paymentTargets.length === 0) {
     return (
-      <div
+      <main
         className="flex min-h-dvh flex-col bg-surface-sunken pt-[env(safe-area-inset-top)]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
@@ -179,12 +179,12 @@ export function QuickExpensePage() {
             </Link>
           }
         />
-      </div>
+      </main>
     );
   }
 
   return (
-    <div
+    <main
       className="flex min-h-dvh flex-col gap-6 bg-surface-sunken p-4 pt-[calc(1rem+env(safe-area-inset-top))]"
       style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
     >
@@ -239,7 +239,7 @@ export function QuickExpensePage() {
                   onClick={() => selectTarget(target)}
                   aria-pressed={selected}
                   className={clsx(
-                    'flex max-w-[min(14rem,100%)] items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-medium transition-colors duration-150',
+                    'flex min-h-11 max-w-[min(14rem,100%)] items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-medium transition-colors duration-150',
                     selected ? 'border-brand bg-brand/10 text-brand' : 'border-border bg-surface text-ink',
                   )}
                 >
@@ -276,7 +276,7 @@ export function QuickExpensePage() {
                     }
                     aria-pressed={selected}
                     className={clsx(
-                      'flex max-w-[min(14rem,100%)] items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-medium transition-colors duration-150',
+                      'flex min-h-11 max-w-[min(14rem,100%)] items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-medium transition-colors duration-150',
                       selected ? 'border-brand bg-brand/10 text-brand' : 'border-border bg-surface text-ink',
                     )}
                   >
@@ -312,6 +312,6 @@ export function QuickExpensePage() {
           </Button>
         </div>
       </form>
-    </div>
+    </main>
   );
 }

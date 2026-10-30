@@ -43,7 +43,7 @@ export function UpdatePasswordPage() {
 
   if (!session) {
     return (
-      <div className="flex min-h-dvh items-center justify-center p-4">
+      <main className="flex min-h-dvh items-center justify-center p-4">
         <div className="w-full max-w-sm">
           <Logo className="mb-6" withWordmark />
           <h1 className="text-xl font-semibold text-ink">Enlace inválido o vencido</h1>
@@ -54,12 +54,12 @@ export function UpdatePasswordPage() {
             Recuperar contraseña
           </Link>
         </div>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center p-4">
+    <main className="flex min-h-dvh items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <Logo className="mb-6" withWordmark />
         <h1 className="text-xl font-semibold text-ink">Elegí una nueva contraseña</h1>
@@ -85,6 +85,6 @@ export function UpdatePasswordPage() {
           </Button>
         </form>
       </div>
-    </div>
+    </main>
   );
 }
