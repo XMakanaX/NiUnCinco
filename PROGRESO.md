@@ -268,6 +268,12 @@ Verificado: `npm run lint` (sin errores), `npm run typecheck` (sin errores), `np
 
 Pendiente, todo requiere autorización explícita antes de ejecutarse: crear proyecto en Vercel, configurar sus variables de entorno por ambiente, aplicar las 7 migraciones a `NiUnCinco-prod`, primer deploy, configurar `site_url`/`uri_allow_list` de prod con el dominio real, probar registro/login real contra prod, dominio propio y DNS. Detalle completo del procedimiento paso a paso: `DESPLIEGUE.md` §9. Sin verificación en hardware móvil real ni con lector de pantalla físico (misma limitación de herramienta de todo el proyecto, ver `DESPLIEGUE.md` §10).
 
+**Actualización 2026-10-30 (misma sesión, autorizado explícitamente):** proyecto Vercel creado (`maka17/ni-un-cinco`), variables `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` configuradas por ambiente (dev en Preview/Development, prod en Production). Primer `vercel deploy` completado, `status: Ready` — URL `https://ni-un-cinco-lfyw4dve8-maka17.vercel.app` (alias `https://ni-un-cinco-maka17.vercel.app`), protegido con Vercel Authentication. El CLI asignó ese primer deploy a `target: production` automáticamente (comportamiento default de Vercel, no se puede evitar en el primer deploy). `vercel link --repo` (integración git automática) falló al conectar el repo de GitHub — quedó sin esa integración; deploys siguientes son manuales (`vercel deploy`).
+
+**Actualización 2026-10-30 (continuación, autorizado explícitamente paso por paso):** las 7 migraciones se aplicaron a `NiUnCinco-prod` — `supabase link` dio error de privilegios con el token de gestión, se aplicaron directo con `supabase db push --db-url` contra la connection string del pooler (`aws-0-us-east-2.pooler.supabase.com`, el host directo `db.*.supabase.co` no resuelve por DNS desde este entorno). `site_url`/`uri_allow_list` de Auth configurados en prod con el dominio real del deploy (`https://ni-un-cinco-maka17.vercel.app` + patrón de previews propio, sin wildcard abierto a `*.vercel.app` de terceros).
+
+Pendiente, requiere autorización explícita: probar registro/login real contra prod (la protección de Vercel Authentication del deployment lo bloquea para visitantes sin sesión de Vercel — habría que desactivarla para probarlo de verdad), dominio propio y DNS, conectar integración git para deploys automáticos.
+
 ---
 
 ## Cómo actualizar este archivo

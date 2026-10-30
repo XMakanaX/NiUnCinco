@@ -44,9 +44,9 @@ Dos proyectos separados en la misma organización (`eslitlyufhooopcjiwic`), crea
 | Entorno | Nombre proyecto | Ref | Región | Estado |
 |---|---|---|---|---|
 | Desarrollo | `NiUnCinco` (antes `AppFinanzas`) | `nvtmoehawfwxwosuepoe` | us-east-2 | Activo, 7 migraciones aplicadas, datos de prueba de las Fases 4-14 |
-| Producción | `NiUnCinco-prod` | `zxkujqpozhttzsgyscal` | us-east-2 | Activo, **vacío, sin migraciones aplicadas todavía** |
+| Producción | `NiUnCinco-prod` | `zxkujqpozhttzsgyscal` | us-east-2 | Activo, **7 migraciones aplicadas (2026-10-30)**, RLS/triggers iguales a dev, sin datos de usuario reales todavía |
 
-**Migraciones pendientes de aplicar a producción** (las 7 ya aplicadas en dev, en orden, ninguna destructiva — todas son `CREATE`/`ALTER` aditivos sobre una base vacía):
+**Migraciones — ya aplicadas en ambos entornos (2026-10-30)**, en orden, ninguna destructiva (todas `CREATE`/`ALTER` aditivos):
 
 ```
 supabase/migrations/20261028221518_initial_schema.sql
@@ -58,16 +58,15 @@ supabase/migrations/20261030120000_card_reminders.sql
 supabase/migrations/20261030150000_reports.sql
 ```
 
-Para aplicarlas (requiere autorización explícita antes de ejecutar, aunque sea sobre una base vacía):
+Aplicadas con (el link vía `supabase link` dio error de privilegios con el token de gestión usado; se aplicó directo con la connection string del pooler, que sí funcionó):
 
 ```bash
-npx supabase link --project-ref zxkujqpozhttzsgyscal
-npx supabase db push
+npx supabase db push --db-url "postgresql://postgres.zxkujqpozhttzsgyscal:<password>@aws-0-us-east-2.pooler.supabase.com:5432/postgres"
 ```
 
 **Auth — Site URL y redirect allow list:**
 - Dev: corregido en esta sesión (estaba mal configurado en `http://localhost:3000`, no coincidía con el puerto real de Vite). Ahora `site_url = http://localhost:5173`, `uri_allow_list = http://localhost:5173/**,http://localhost:4173/**`.
-- Prod: **pendiente** — no se puede configurar hasta tener el dominio real de Vercel (`https://<proyecto>.vercel.app` o el dominio propio). Paso obligatorio antes de probar registro/login en producción, o los enlaces de confirmación por correo y de recuperación de contraseña van a redirigir a `localhost`.
+- Prod: configurado en esta sesión con el dominio real del deploy de Vercel. `site_url = https://ni-un-cinco-maka17.vercel.app`, `uri_allow_list = https://ni-un-cinco-maka17.vercel.app/**,https://ni-un-cinco-*-maka17.vercel.app/**` (el segundo patrón cubre los deploys preview del mismo proyecto, sin abrir a cualquier `*.vercel.app` de terceros).
 
 **Seguridad verificada (ambos proyectos deberían quedar igual tras aplicar las migraciones a prod):** RLS `enable`+`force` en las 11 tablas, políticas con `(select auth.uid())`, `client_id`+`unique(user_id, client_id)` para idempotencia de la cola offline, ninguna `service_role` ni secreto en el código del cliente. Único hallazgo de `supabase db advisors --type security`: `auth_leaked_password_protection` (bloqueado por plan Free, no por configuración).
 
@@ -112,19 +111,30 @@ Instrucciones completas (con capturas conceptuales) ya en `README.md`.
 | `npm run build` | Éxito. Warning preexistente: un chunk (`index-*.js`, 782 kB / 231 kB gzip) supera 500 kB — no bloquea, ya documentado desde la Fase 14, candidato a code-splitting adicional si se quiere optimizar después |
 | `npx supabase db advisors --linked --type security` (proyecto dev) | 1 warning preexistente: `auth_leaked_password_protection` (bloqueado por plan Free) |
 
-No se corrió ningún deploy real a Vercel en esta sesión — no hay proyecto Vercel creado todavía (confirmado: sin `.vercel/`, CLI de Vercel no instalada en este entorno).
+**Deploy real ejecutado en esta sesión (2026-10-30), autorizado explícitamente por el usuario:** proyecto Vercel creado (`maka17/ni-un-cinco`, team `maka17`), variables de entorno configuradas (dev en Preview/Development, prod en Production — ver tabla de la sección 5), primer deploy con `vercel deploy`.
+
+**Aviso importante:** el CLI de Vercel asigna automáticamente el *primer* deploy de un proyecto nuevo a `target: production` (no hay forma de forzarlo a preview en ese primer deploy) — quedó como producción aunque la intención era preview. No es un problema de datos reales: el proyecto `NiUnCinco-prod` sigue vacío, sin migraciones, así que login/registro ahí no funciona todavía. Deployment protegido con Vercel Authentication (no es accesible públicamente sin sesión de Vercel). Resultado: `status: Ready`.
+
+- URL del deployment: `https://ni-un-cinco-lfyw4dve8-maka17.vercel.app`
+- Alias del proyecto: `https://ni-un-cinco-maka17.vercel.app`
+- Deploys siguientes (`vercel deploy` sin `--prod`) ya van a preview normalmente, según el propio CLI.
+- Git integration (`vercel git connect`) **no** se configuró — el intento de `vercel link --repo` (alpha) falló al conectar el repo de GitHub automáticamente; se linkeó el proyecto sin integración git. Por ahora los deploys son manuales vía CLI (`vercel deploy`), no automáticos al hacer push.
 
 ## 9. Procedimiento de despliegue y actualización
 
-**Primer despliegue (requiere autorización explícita antes de cada paso marcado 🔒):**
+**Hecho en esta sesión (2026-10-30, cada paso autorizado explícitamente):**
 
-1. Crear proyecto en Vercel vinculado a este repositorio (dashboard de Vercel o `vercel link`). 🔒
-2. Configurar variables de entorno en Vercel: `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` de **prod** en el entorno Production; las de **dev** en Preview/Development.
-3. 🔒 Aplicar las 7 migraciones a `NiUnCinco-prod` (`supabase db push` contra ese proyecto, ver sección 4).
-4. Primer deploy (automático al crear el proyecto, o `vercel --prod`). 🔒
-5. Tomar el dominio real asignado (`https://<proyecto>.vercel.app` o dominio propio) y configurar `site_url` + `uri_allow_list` de Auth en el proyecto `NiUnCinco-prod` (igual que se hizo para dev en la sección 4, con ese dominio).
-6. Probar en el dominio real: registro con confirmación por correo, login, un gasto rápido, instalación de la PWA. 🔒 (implica crear una cuenta real contra prod).
+1. ✅ Proyecto Vercel creado (`maka17/ni-un-cinco`), sin integración git automática (`vercel link --repo` falló al conectar el repo de GitHub — ver sección 8).
+2. ✅ Variables de entorno configuradas: `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` de prod en Production, de dev en Preview/Development.
+3. ✅ 7 migraciones aplicadas a `NiUnCinco-prod`.
+4. ✅ Primer deploy (`vercel deploy`) — Vercel lo asignó a `target: production` automáticamente (comportamiento default del primer deploy, no evitable). `status: Ready`. URL: `https://ni-un-cinco-maka17.vercel.app`, protegida con Vercel Authentication.
+5. ✅ `site_url`/`uri_allow_list` de Auth en `NiUnCinco-prod` configurados con ese dominio real.
+
+**Pendiente, requiere autorización explícita antes de cada paso marcado 🔒:**
+
+6. 🔒 Probar en el dominio real: registro con confirmación por correo, login, un gasto rápido, instalación de la PWA (implica crear una cuenta real contra prod, y probablemente desactivar la protección de Vercel Authentication para poder abrirlo sin login de Vercel).
 7. Configurar dominio propio y DNS si corresponde — **requiere autorización explícita, no incluido en esta preparación**.
+8. Conectar integración git (`vercel git connect`) para que los pushes a la rama de producción disparen deploy automático — hoy los deploys son manuales vía `vercel deploy`.
 
 **Actualizaciones posteriores:** cada push a la rama de producción en Vercel dispara un build nuevo automático (`npm run build`, que ya incluye `tsc -b`). El service worker usa `registerType: 'prompt'` — los usuarios con la PWA instalada ven un toast "Nueva versión disponible" en vez de recargar solos, para no perder un formulario a medio llenar. Si una actualización agrega una migración nueva, aplicarla a prod con `supabase db push` **antes** de que el deploy del frontend que la necesita quede activo (evitar que el frontend nuevo le pida a la base una función/columna que todavía no existe).
 
