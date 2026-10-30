@@ -6,6 +6,7 @@ import { Money } from '@/shared/ui/Money';
 import { Button } from '@/shared/ui/Button';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { toast } from '@/shared/lib/toast';
+import { offlineActionMessage } from '@/shared/lib/offlineActionMessage';
 import { formatDisplayDate, todayInAppTimeZone } from '@/shared/lib/date';
 import {
   useArchiveRecurringExpense,
@@ -41,20 +42,24 @@ export function RecurringExpenseListItem({
       await deleteRecurringExpense.mutateAsync(recurringExpense.id);
       toast.success('Gasto recurrente eliminado');
       setConfirmDelete(false);
-    } catch {
-      toast.error('No se pudo eliminar el gasto recurrente');
+    } catch (error) {
+      toast.error(offlineActionMessage(error, 'No se pudo eliminar el gasto recurrente'));
     }
   };
 
   const handleMarkPaid = async () => {
     try {
-      await markPaid.mutateAsync({
+      const { queued } = await markPaid.mutateAsync({
         clientId: clientIdRef.current,
         recurringExpenseId: recurringExpense.id,
         occurredOn: todayInAppTimeZone(),
       });
       clientIdRef.current = crypto.randomUUID();
-      toast.success('Gasto registrado y próximo vencimiento actualizado');
+      toast[queued ? 'info' : 'success'](
+        queued
+          ? 'Sin conexión: el pago quedó pendiente de enviar'
+          : 'Gasto registrado y próximo vencimiento actualizado',
+      );
     } catch {
       toast.error('No se pudo registrar el pago');
     }

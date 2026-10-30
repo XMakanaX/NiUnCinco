@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/shared/lib/supabase';
 import { useAuthStore } from '@/shared/lib/auth';
 import { isUniqueViolation } from '@/shared/lib/postgresErrors';
+import { isNetworkError } from '@/shared/offline/classify';
+import { addOp } from '@/shared/offline/queue';
+import { OP_KIND } from '@/shared/offline/types';
 import type { Database } from '@/types/database';
 import type { CurrencyCode } from '@/shared/lib/money';
 import type { RecurringExpenseInput } from '@/features/budgets/schema';
@@ -98,6 +101,7 @@ export function useDeleteRecurringExpense() {
  * `create_transfer`/`create_card_payment` (Fase 6), sin volver a
  * avanzar la fecha ni duplicar el gasto. */
 export function useMarkRecurringExpensePaid() {
+  const userId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -109,13 +113,25 @@ export function useMarkRecurringExpensePaid() {
       clientId: string;
       recurringExpenseId: string;
       occurredOn: string;
-    }) => {
+    }): Promise<{ queued: boolean }> => {
       const { error } = await supabase.rpc('mark_recurring_expense_paid', {
         p_recurring_expense_id: recurringExpenseId,
         p_occurred_on: occurredOn,
         p_client_id: clientId,
       });
-      if (error && !isUniqueViolation(error)) throw error;
+      if (error) {
+        if (isUniqueViolation(error)) return { queued: false };
+        if (isNetworkError(error)) {
+          await addOp({
+            userId: userId!,
+            kind: OP_KIND.RECURRING_PAID,
+            payload: { clientId, recurringExpenseId, occurredOn },
+          });
+          return { queued: true };
+        }
+        throw error;
+      }
+      return { queued: false };
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY });

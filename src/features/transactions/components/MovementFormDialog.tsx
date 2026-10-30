@@ -84,8 +84,12 @@ export function MovementFormDialog({ open, onOpenChange }: MovementFormDialogPro
 
   const onSubmit = async (values: MovementInput) => {
     try {
-      await createMovement.mutateAsync({ clientId: clientIdRef.current, input: values });
-      toast.success(type === 'income' ? 'Ingreso registrado' : 'Gasto registrado');
+      const { queued } = await createMovement.mutateAsync({ clientId: clientIdRef.current, input: values });
+      if (queued) {
+        toast.info('Sin conexión: el movimiento quedó pendiente de enviar');
+      } else {
+        toast.success(type === 'income' ? 'Ingreso registrado' : 'Gasto registrado');
+      }
       onOpenChange(false);
     } catch {
       toast.error('No se pudo registrar el movimiento. Volvé a intentar.');

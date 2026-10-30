@@ -6,6 +6,7 @@ import { Money } from '@/shared/ui/Money';
 import { Button } from '@/shared/ui/Button';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { toast } from '@/shared/lib/toast';
+import { offlineActionMessage } from '@/shared/lib/offlineActionMessage';
 import { formatDisplayDate, todayInAppTimeZone } from '@/shared/lib/date';
 import { useArchiveGoal, useDeleteGoal, useGoalContributions, type Goal } from '@/features/budgets/api/useGoals';
 
@@ -54,8 +55,8 @@ export function GoalListItem({ goal, onEdit, onContribute }: GoalListItemProps) 
       await deleteGoal.mutateAsync(goal.id);
       toast.success('Meta eliminada');
       setConfirmDelete(false);
-    } catch {
-      toast.error('No se pudo eliminar la meta');
+    } catch (error) {
+      toast.error(offlineActionMessage(error, 'No se pudo eliminar la meta'));
     }
   };
 

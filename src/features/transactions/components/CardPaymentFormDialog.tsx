@@ -80,8 +80,10 @@ export function CardPaymentFormDialog({ open, onOpenChange, defaultCardId = null
       }
     }
     try {
-      await createCardPayment.mutateAsync({ clientId: clientIdRef.current, input: values });
-      toast.success('Pago de tarjeta registrado');
+      const { queued } = await createCardPayment.mutateAsync({ clientId: clientIdRef.current, input: values });
+      toast[queued ? 'info' : 'success'](
+        queued ? 'Sin conexión: el pago quedó pendiente de enviar' : 'Pago de tarjeta registrado',
+      );
       onOpenChange(false);
     } catch {
       toast.error('No se pudo registrar el pago. Volvé a intentar.');

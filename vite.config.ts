@@ -10,9 +10,14 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt' en vez de 'autoUpdate' (Fase 13): una recarga automática
+      // puede borrar un formulario a medio llenar. El toast de
+      // "nueva versión disponible" (src/app/providers.tsx) deja que el
+      // usuario decida cuándo recargar.
+      registerType: 'prompt',
       includeAssets: ['icons/*.png'],
       manifest: {
+        id: '/',
         name: 'Ni Un Cinco',
         short_name: 'NiUnCinco',
         description: 'Finanzas personales en colones costarricenses',
@@ -20,6 +25,8 @@ export default defineConfig({
         start_url: '/',
         scope: '/',
         display: 'standalone',
+        display_override: ['standalone'],
+        orientation: 'portrait',
         background_color: '#0a0a0a',
         theme_color: '#0a0a0a',
         icons: [
@@ -32,10 +39,30 @@ export default defineConfig({
             purpose: 'maskable',
           },
         ],
+        shortcuts: [
+          {
+            name: 'Registrar gasto',
+            short_name: 'Gasto rápido',
+            url: '/quick-expense',
+            icons: [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+          },
+        ],
       },
       workbox: {
+        cleanupOutdatedCaches: true,
         navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
+          // Línea dura de la Fase 13: ninguna respuesta de Supabase (datos
+          // de usuario) entra al Cache Storage del service worker — una
+          // regla de cache mal escrita ahí podría filtrar datos entre
+          // cuentas que comparten el mismo dispositivo/navegador. Esta
+          // entrada es redundante con el comportamiento por defecto (nada
+          // matchea hoy esas URLs), pero lo deja explícito para quien
+          // agregue una regla nueva más adelante.
+          {
+            urlPattern: ({ url }) => url.hostname.endsWith('.supabase.co'),
+            handler: 'NetworkOnly',
+          },
           {
             urlPattern: ({ request }) => request.mode === 'navigate',
             handler: 'NetworkFirst',

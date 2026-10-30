@@ -7,6 +7,7 @@ import { Select } from '@/shared/ui/Select';
 import { Button } from '@/shared/ui/Button';
 import { ColorSwatchPicker } from '@/shared/ui/ColorSwatchPicker';
 import { toast } from '@/shared/lib/toast';
+import { offlineActionMessage } from '@/shared/lib/offlineActionMessage';
 import { categorySchema, type CategoryInput } from '@/features/categories/schema';
 import {
   useCategories,
@@ -70,8 +71,8 @@ export function CategoryFormDialog({ open, onOpenChange, category }: CategoryFor
         toast.success('Categoría creada');
       }
       onOpenChange(false);
-    } catch {
-      toast.error('No se pudo guardar la categoría');
+    } catch (error) {
+      toast.error(offlineActionMessage(error, 'No se pudo guardar la categoría'));
     }
   };
 

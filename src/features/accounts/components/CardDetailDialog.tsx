@@ -7,6 +7,7 @@ import { Select } from '@/shared/ui/Select';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { LoadingState } from '@/shared/ui/LoadingState';
 import { toast } from '@/shared/lib/toast';
+import { offlineActionMessage } from '@/shared/lib/offlineActionMessage';
 import { creditCardCycle, daysUntil, formatDisplayDate } from '@/shared/lib/date';
 import type { Card } from '@/features/accounts/api/useCards';
 import { useUpdateCardReminder } from '@/features/accounts/api/useCards';
@@ -36,8 +37,8 @@ function PaymentRow({ payment }: { payment: CardPaymentHistoryEntry }) {
       await voidPayment.mutateAsync(payment.id);
       toast.success('Pago anulado');
       setConfirmVoid(false);
-    } catch {
-      toast.error('No se pudo anular el pago');
+    } catch (error) {
+      toast.error(offlineActionMessage(error, 'No se pudo anular el pago'));
     }
   };
 

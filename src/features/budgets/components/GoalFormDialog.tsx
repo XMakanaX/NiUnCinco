@@ -6,6 +6,7 @@ import { Input } from '@/shared/ui/Input';
 import { Select } from '@/shared/ui/Select';
 import { Button } from '@/shared/ui/Button';
 import { toast } from '@/shared/lib/toast';
+import { offlineActionMessage } from '@/shared/lib/offlineActionMessage';
 import { goalSchema, type GoalInput } from '@/features/budgets/schema';
 import { useCreateGoal, useUpdateGoal, type Goal } from '@/features/budgets/api/useGoals';
 
@@ -60,8 +61,8 @@ export function GoalFormDialog({ open, onOpenChange, goal }: GoalFormDialogProps
         toast.success('Meta creada');
       }
       onOpenChange(false);
-    } catch {
-      toast.error('No se pudo guardar la meta');
+    } catch (error) {
+      toast.error(offlineActionMessage(error, 'No se pudo guardar la meta'));
     }
   };
 

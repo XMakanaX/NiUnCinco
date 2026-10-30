@@ -6,6 +6,7 @@ import { Money } from '@/shared/ui/Money';
 import { Button } from '@/shared/ui/Button';
 import { ConfirmDialog } from '@/shared/ui/ConfirmDialog';
 import { toast } from '@/shared/lib/toast';
+import { offlineActionMessage } from '@/shared/lib/offlineActionMessage';
 import { monthLabel } from '@/shared/lib/date';
 import { useArchiveBudget, useDeleteBudget, type Budget } from '@/features/budgets/api/useBudgets';
 
@@ -32,8 +33,8 @@ export function BudgetListItem({ budget, categoryName, onEdit }: BudgetListItemP
       await deleteBudget.mutateAsync(budget.id);
       toast.success('Presupuesto eliminado');
       setConfirmDelete(false);
-    } catch {
-      toast.error('No se pudo eliminar el presupuesto');
+    } catch (error) {
+      toast.error(offlineActionMessage(error, 'No se pudo eliminar el presupuesto'));
     }
   };
 

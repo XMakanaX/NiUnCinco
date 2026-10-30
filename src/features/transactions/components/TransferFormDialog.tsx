@@ -70,12 +70,14 @@ export function TransferFormDialog({ open, onOpenChange }: TransferFormDialogPro
   const onSubmit = async (values: TransferInput) => {
     if (currencyMismatch) return;
     try {
-      await createTransfer.mutateAsync({
+      const { queued } = await createTransfer.mutateAsync({
         clientIdOut: clientIdOutRef.current,
         clientIdIn: clientIdInRef.current,
         input: values,
       });
-      toast.success('Transferencia registrada');
+      toast[queued ? 'info' : 'success'](
+        queued ? 'Sin conexión: la transferencia quedó pendiente de enviar' : 'Transferencia registrada',
+      );
       onOpenChange(false);
     } catch {
       toast.error('No se pudo registrar la transferencia. Volvé a intentar.');

@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/shared/lib/supabase';
 import { useAuthStore } from '@/shared/lib/auth';
 import { isUniqueViolation } from '@/shared/lib/postgresErrors';
+import { isNetworkError } from '@/shared/offline/classify';
+import { addOp } from '@/shared/offline/queue';
+import { OP_KIND } from '@/shared/offline/types';
 import type { Database } from '@/types/database';
 import type { CurrencyCode } from '@/shared/lib/money';
 import type { MovementInput, TransferInput, CardPaymentInput } from '@/features/transactions/schema';
@@ -60,20 +63,36 @@ export function useTransactions(filters: TransactionFilters = {}) {
 
 /** Ingreso o gasto: un solo insert, ya atómico. `client_id` lo genera el
  * formulario al abrirse y lo reutiliza en reintentos (protección contra
- * doble clic / reintentos de red — un `client_id` repetido es idempotente). */
+ * doble clic / reintentos de red — un `client_id` repetido es idempotente).
+ * Sin conexión, se encola en vez de fallar (Fase 13) — nunca se muestra
+ * como confirmado hasta que el servidor responde. */
 export function useCreateMovement() {
   const userId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ clientId, input }: { clientId: string; input: MovementInput }) => {
+    mutationFn: async ({
+      clientId,
+      input,
+    }: {
+      clientId: string;
+      input: MovementInput;
+    }): Promise<{ queued: boolean }> => {
       const { error } = await supabase.from('transactions').insert({
         ...input,
         user_id: userId!,
         client_id: clientId,
         status: 'confirmed',
       });
-      if (error && !isUniqueViolation(error)) throw error;
+      if (error) {
+        if (isUniqueViolation(error)) return { queued: false };
+        if (isNetworkError(error)) {
+          await addOp({ userId: userId!, kind: OP_KIND.MOVEMENT, payload: { clientId, input } });
+          return { queued: true };
+        }
+        throw error;
+      }
+      return { queued: false };
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
@@ -85,6 +104,7 @@ export function useCreateMovement() {
 }
 
 export function useCreateTransfer() {
+  const userId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -96,7 +116,7 @@ export function useCreateTransfer() {
       clientIdOut: string;
       clientIdIn: string;
       input: TransferInput;
-    }) => {
+    }): Promise<{ queued: boolean }> => {
       const { error } = await supabase.rpc('create_transfer', {
         p_from_account_id: input.from_account_id,
         p_to_account_id: input.to_account_id,
@@ -109,7 +129,15 @@ export function useCreateTransfer() {
         p_client_id_out: clientIdOut,
         p_client_id_in: clientIdIn,
       });
-      if (error && !isUniqueViolation(error)) throw error;
+      if (error) {
+        if (isUniqueViolation(error)) return { queued: false };
+        if (isNetworkError(error)) {
+          await addOp({ userId: userId!, kind: OP_KIND.TRANSFER, payload: { clientIdOut, clientIdIn, input } });
+          return { queued: true };
+        }
+        throw error;
+      }
+      return { queued: false };
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY });
@@ -120,10 +148,17 @@ export function useCreateTransfer() {
 }
 
 export function useCreateCardPayment() {
+  const userId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ clientId, input }: { clientId: string; input: CardPaymentInput }) => {
+    mutationFn: async ({
+      clientId,
+      input,
+    }: {
+      clientId: string;
+      input: CardPaymentInput;
+    }): Promise<{ queued: boolean }> => {
       const { error } = await supabase.rpc('create_card_payment', {
         p_card_id: input.card_id,
         p_from_account_id: input.from_account_id,
@@ -133,7 +168,15 @@ export function useCreateCardPayment() {
         p_notes: input.notes as string,
         p_client_id: clientId,
       });
-      if (error && !isUniqueViolation(error)) throw error;
+      if (error) {
+        if (isUniqueViolation(error)) return { queued: false };
+        if (isNetworkError(error)) {
+          await addOp({ userId: userId!, kind: OP_KIND.CARD_PAYMENT, payload: { clientId, input } });
+          return { queued: true };
+        }
+        throw error;
+      }
+      return { queued: false };
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY });

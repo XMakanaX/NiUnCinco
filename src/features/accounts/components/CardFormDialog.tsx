@@ -7,6 +7,7 @@ import { Select } from '@/shared/ui/Select';
 import { Button } from '@/shared/ui/Button';
 import { ColorSwatchPicker } from '@/shared/ui/ColorSwatchPicker';
 import { toast } from '@/shared/lib/toast';
+import { offlineActionMessage } from '@/shared/lib/offlineActionMessage';
 import { cardSchema, type CardInput } from '@/features/accounts/schema';
 import { useCreateCard, useUpdateCard, type Card } from '@/features/accounts/api/useCards';
 import { useAccounts } from '@/features/accounts/api/useAccounts';
@@ -91,8 +92,8 @@ export function CardFormDialog({ open, onOpenChange, card }: CardFormDialogProps
         toast.success('Tarjeta creada');
       }
       onOpenChange(false);
-    } catch {
-      toast.error('No se pudo guardar la tarjeta');
+    } catch (error) {
+      toast.error(offlineActionMessage(error, 'No se pudo guardar la tarjeta'));
     }
   };
 

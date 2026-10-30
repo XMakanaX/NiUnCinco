@@ -6,6 +6,7 @@ import { Input } from '@/shared/ui/Input';
 import { Select } from '@/shared/ui/Select';
 import { Button } from '@/shared/ui/Button';
 import { toast } from '@/shared/lib/toast';
+import { offlineActionMessage } from '@/shared/lib/offlineActionMessage';
 import { todayInAppTimeZone } from '@/shared/lib/date';
 import { budgetSchema, type BudgetInput } from '@/features/budgets/schema';
 import { useCreateBudget, useUpdateBudget, type Budget } from '@/features/budgets/api/useBudgets';
@@ -82,8 +83,10 @@ export function BudgetFormDialog({ open, onOpenChange, budget }: BudgetFormDialo
         toast.success('Presupuesto creado');
       }
       onOpenChange(false);
-    } catch {
-      toast.error('No se pudo guardar el presupuesto. Puede que ya exista uno para ese mes y categoría.');
+    } catch (error) {
+      toast.error(
+        offlineActionMessage(error, 'No se pudo guardar el presupuesto. Puede que ya exista uno para ese mes y categoría.'),
+      );
     }
   };
 

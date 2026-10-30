@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router';
-import { Check, CloudOff, Wallet, Zap } from 'lucide-react';
+import { Check, Wallet, Zap } from 'lucide-react';
 import clsx from 'clsx';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -18,8 +18,6 @@ import { useCards } from '@/features/accounts/api/useCards';
 import { useCategories } from '@/features/categories/api/useCategories';
 import { useProfile } from '@/features/settings/api/useProfile';
 import { useQuickExpensePrefs, sortByFrequency } from '@/features/quick-expense/store';
-import { usePendingQuickExpenses } from '@/features/quick-expense/offline/usePendingQuickExpenses';
-import { isNetworkError } from '@/features/quick-expense/offline/queue';
 
 type PaymentTarget = { kind: 'account' | 'card'; id: string; name: string; color: string | null };
 
@@ -36,7 +34,6 @@ export function QuickExpensePage() {
   const { data: categories, isLoading: loadingCategories } = useCategories();
   const { data: profile } = useProfile();
   const createMovement = useCreateMovement();
-  const { pending, enqueue } = usePendingQuickExpenses();
 
   const prefs = useQuickExpensePrefs();
   const clientIdRef = useRef(crypto.randomUUID());
@@ -125,17 +122,15 @@ export function QuickExpensePage() {
   const onSubmit = async (values: MovementInput) => {
     const clientId = clientIdRef.current;
     try {
-      await createMovement.mutateAsync({ clientId, input: values });
+      const { queued } = await createMovement.mutateAsync({ clientId, input: values });
       afterSave(values);
-      toast.success('Gasto registrado');
-    } catch (error) {
-      if (isNetworkError(error)) {
-        await enqueue({ clientId, input: values, createdAt: new Date().toISOString() });
-        afterSave(values);
-        toast.info('Sin conexión: el gasto quedó pendiente y se enviará solo al volver la señal.');
-      } else {
-        toast.error('No se pudo registrar el gasto. Volvé a intentar.');
-      }
+      toast[queued ? 'info' : 'success'](
+        queued
+          ? 'Sin conexión: el gasto quedó pendiente y se enviará solo al volver la señal.'
+          : 'Gasto registrado',
+      );
+    } catch {
+      toast.error('No se pudo registrar el gasto. Volvé a intentar.');
     }
   };
 
@@ -304,15 +299,6 @@ export function QuickExpensePage() {
           error={errors.merchant?.message}
           {...register('merchant', { setValueAs: (v) => (v === '' ? null : v) })}
         />
-
-        {pending.length > 0 ? (
-          <div className="flex items-center gap-2 rounded-[var(--radius-sm)] border border-border bg-surface px-3 py-2 text-sm text-ink-muted">
-            <CloudOff className="size-4 shrink-0" aria-hidden />
-            {pending.length === 1
-              ? '1 gasto pendiente de enviar (sin conexión)'
-              : `${pending.length} gastos pendientes de enviar (sin conexión)`}
-          </div>
-        ) : null}
 
         {savedJustNow ? (
           <p className="text-center text-sm font-medium text-income" role="status">

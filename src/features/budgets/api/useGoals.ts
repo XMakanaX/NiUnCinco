@@ -2,6 +2,9 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/shared/lib/supabase';
 import { useAuthStore } from '@/shared/lib/auth';
 import { isUniqueViolation } from '@/shared/lib/postgresErrors';
+import { isNetworkError } from '@/shared/offline/classify';
+import { addOp } from '@/shared/offline/queue';
+import { OP_KIND } from '@/shared/offline/types';
 import type { Database } from '@/types/database';
 import type { CurrencyCode } from '@/shared/lib/money';
 import type { GoalInput, GoalContributionInput } from '@/features/budgets/schema';
@@ -117,6 +120,7 @@ export function useDeleteGoal() {
  * aportes/retiros de metas no tocan `transactions`: nunca se cuentan
  * como ingreso o gasto (regla del plan Fase 9). */
 export function useCreateGoalContribution() {
+  const userId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -128,7 +132,7 @@ export function useCreateGoalContribution() {
       clientId: string;
       goalId: string;
       input: GoalContributionInput;
-    }) => {
+    }): Promise<{ queued: boolean }> => {
       const { error } = await supabase.rpc('create_goal_contribution', {
         p_goal_id: goalId,
         p_type: input.type,
@@ -137,7 +141,19 @@ export function useCreateGoalContribution() {
         p_notes: input.notes as string,
         p_client_id: clientId,
       });
-      if (error && !isUniqueViolation(error)) throw error;
+      if (error) {
+        if (isUniqueViolation(error)) return { queued: false };
+        if (isNetworkError(error)) {
+          await addOp({
+            userId: userId!,
+            kind: OP_KIND.GOAL_CONTRIBUTION,
+            payload: { clientId, goalId, input },
+          });
+          return { queued: true };
+        }
+        throw error;
+      }
+      return { queued: false };
     },
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({ queryKey: QUERY_KEY });

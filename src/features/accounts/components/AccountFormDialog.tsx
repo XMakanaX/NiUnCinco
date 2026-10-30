@@ -7,6 +7,7 @@ import { Select } from '@/shared/ui/Select';
 import { Button } from '@/shared/ui/Button';
 import { ColorSwatchPicker } from '@/shared/ui/ColorSwatchPicker';
 import { toast } from '@/shared/lib/toast';
+import { offlineActionMessage } from '@/shared/lib/offlineActionMessage';
 import { accountSchema, type AccountInput } from '@/features/accounts/schema';
 import { useCreateAccount, useUpdateAccount, type Account } from '@/features/accounts/api/useAccounts';
 
@@ -61,8 +62,8 @@ export function AccountFormDialog({ open, onOpenChange, account }: AccountFormDi
         toast.success('Cuenta creada');
       }
       onOpenChange(false);
-    } catch {
-      toast.error('No se pudo guardar la cuenta');
+    } catch (error) {
+      toast.error(offlineActionMessage(error, 'No se pudo guardar la cuenta'));
     }
   };
 

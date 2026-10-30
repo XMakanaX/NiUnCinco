@@ -71,7 +71,62 @@ Captura bancaria automática requeriría una integración distinta, no disponibl
 Si el dispositivo está sin conexión al guardar un gasto rápido, el
 movimiento queda en una cola local (IndexedDB) marcado como pendiente —
 nunca se muestra como confirmado hasta que el servidor responde — y se
-envía solo al recuperar la señal.
+envía solo al recuperar la señal. Detalle completo del funcionamiento
+offline en la sección siguiente.
+
+## Funcionamiento sin conexión (Fase 13)
+
+**Qué sigue funcionando sin internet:** navegar las pantallas con datos ya
+cargados antes (cache de React Query persistido en IndexedDB, 24 h),
+registrar un movimiento, una transferencia, un pago de tarjeta, un aporte
+o retiro de meta, o marcar un gasto recurrente como pagado — estas 5
+operaciones tienen clave de idempotencia en la base (`client_id` +
+`unique(user_id, client_id)`) y se encolan localmente; un reintento nunca
+las duplica.
+
+**Qué no funciona sin internet:** crear, editar, archivar o eliminar
+cuentas, tarjetas, categorías, presupuestos, metas o recurrentes, anular
+cualquier movimiento, o editar el perfil. Ninguna de estas tiene clave de
+idempotencia, así que encolarlas arriesgaría duplicados — en vez de eso
+muestran un error explícito ("sin conexión, esta acción necesita
+internet") y no quedan pendientes.
+
+**Indicador de estado:** una barra fija en la parte inferior de la
+pantalla avisa cuando no hay conexión, cuántas operaciones quedan sin
+enviar, cuándo se están sincronizando, y si alguna falló con un error real
+del servidor (ver "Operaciones sin enviar" en Ajustes, con el mensaje
+exacto y botones para reintentar o descartar). Nunca dice "guardado" ni
+"listo" para algo que el servidor todavía no confirmó.
+
+**Conflictos entre dispositivos:** las 5 operaciones encolables son
+idempotentes por diseño de base de datos, así que un reintento repetido
+—incluso desde dos pestañas o dispositivos— nunca genera un duplicado; no
+hay "última edición gana" que resolver ahí. El resto de las ediciones
+(cuentas, presupuestos, etc.) solo ocurre online, así que sigue la regla
+normal de Postgres: la última escritura que llega gana.
+
+**Actualización de la app:** el service worker usa `registerType: 'prompt'`
+— cuando hay una versión nueva, aparece un toast "Nueva versión disponible
+— Actualizar" en vez de recargar solo (evita perder un formulario a medio
+llenar).
+
+**Limitaciones conocidas de iOS, sin promesas falsas:**
+
+- Safari no tiene Background Sync: la cola solo se envía mientras la app
+  está abierta (al cargar o al recuperar la señal), no en segundo plano.
+- No hay notificaciones push implementadas. En iOS, además, requerirían la
+  PWA instalada en la pantalla de inicio.
+- iOS puede desalojar el cache del service worker tras ~7 días sin abrir
+  la app — puede pedir recargar desde la red la primera vez que se vuelve
+  a abrir.
+- El modo standalone (sin la barra de Safari) requiere instalación previa
+  desde "Agregar a pantalla de inicio".
+
+**Cierre de sesión:** borra el cache de consultas persistido y la cola de
+operaciones pendientes — si hay alguna sin enviar, la app avisa antes de
+descartarla. Cambiar de cuenta en la misma pestaña también limpia el cache
+del usuario anterior antes de cargar el nuevo, para que nunca se vean
+datos financieros de una cuenta mientras hay otra activa.
 
 ## Estructura
 

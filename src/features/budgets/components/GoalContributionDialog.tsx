@@ -55,9 +55,19 @@ export function GoalContributionDialog({ open, onOpenChange, goal }: GoalContrib
 
   const onSubmit = async (values: GoalContributionInput) => {
     try {
-      await createContribution.mutateAsync({ clientId: clientIdRef.current, goalId: goal.id, input: values });
+      const { queued } = await createContribution.mutateAsync({
+        clientId: clientIdRef.current,
+        goalId: goal.id,
+        input: values,
+      });
       clientIdRef.current = crypto.randomUUID();
-      toast.success(values.type === 'contribution' ? 'Aporte registrado' : 'Retiro registrado');
+      toast[queued ? 'info' : 'success'](
+        queued
+          ? 'Sin conexión: el movimiento de la meta quedó pendiente de enviar'
+          : values.type === 'contribution'
+            ? 'Aporte registrado'
+            : 'Retiro registrado',
+      );
       onOpenChange(false);
     } catch (error) {
       // El error de Postgres que llega vía supabase-js es un objeto plano
