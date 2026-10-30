@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { detectDelimiter, parseCsv } from './csv';
+import { detectDelimiter, parseCsv, toCsv } from './csv';
 
 describe('parseCsv', () => {
   it('separa filas y columnas simples', () => {
@@ -64,5 +64,33 @@ describe('detectDelimiter', () => {
 
   it('por defecto usa coma si no hay señal clara', () => {
     expect(detectDelimiter('solo una columna\notra fila')).toBe(',');
+  });
+});
+
+describe('toCsv', () => {
+  it('serializa filas simples separadas por coma y CRLF', () => {
+    expect(toCsv([['a', 'b'], ['1', '2']])).toBe('a,b\r\n1,2');
+  });
+
+  it('envuelve en comillas un campo con coma', () => {
+    expect(toCsv([['Supermercado, S.A.', '1000']])).toBe('"Supermercado, S.A.",1000');
+  });
+
+  it('escapa comillas internas duplicándolas', () => {
+    expect(toCsv([['Dijo "hola"', '1']])).toBe('"Dijo ""hola""",1');
+  });
+
+  it('envuelve en comillas un campo con salto de línea', () => {
+    expect(toCsv([['línea 1\nlínea 2', '1']])).toBe('"línea 1\nlínea 2",1');
+  });
+
+  it('ida y vuelta con parseCsv', () => {
+    const original = [
+      ['fecha', 'comercio', 'monto'],
+      ['2026-01-01', 'Supermercado, S.A.', '1000'],
+      ['2026-01-02', 'Dijo "hola"', '500'],
+    ];
+    const csv = toCsv(original);
+    expect(parseCsv(csv, ',')).toEqual(original);
   });
 });

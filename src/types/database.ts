@@ -774,6 +774,54 @@ export type Database = {
         }
         Returns: string
       }
+      reports_breakdown_by_account: {
+        Args: {
+          p_currency: string
+          p_from: string
+          p_kind: string
+          p_to: string
+        }
+        Returns: {
+          account_id: string
+          account_name: string
+          color: string
+          total: number
+        }[]
+      }
+      reports_breakdown_by_card: {
+        Args: {
+          p_currency: string
+          p_from: string
+          p_kind: string
+          p_to: string
+        }
+        Returns: {
+          card_id: string
+          card_name: string
+          color: string
+          total: number
+        }[]
+      }
+      reports_breakdown_by_merchant: {
+        Args: {
+          p_currency: string
+          p_from: string
+          p_kind: string
+          p_to: string
+        }
+        Returns: {
+          merchant: string
+          total: number
+        }[]
+      }
+      reports_monthly_series: {
+        Args: { p_currency: string; p_from: string; p_to: string }
+        Returns: {
+          expense: number
+          income: number
+          month: string
+        }[]
+      }
       void_card_payment: {
         Args: { p_card_payment_id: string }
         Returns: undefined

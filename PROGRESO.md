@@ -17,7 +17,7 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 9 | Presupuestos, recurrencias y metas | ✅ | 2026-10-29 | `8def2fb` |
 | 10 | Pagos y ciclo de tarjetas de crédito | ✅ | 2026-10-29 | `70a4dae` |
 | 11 | Importación de CSV | ✅ | 2026-10-30 | `a50436d` |
-| 12 | Informes, búsqueda y exportación | ⬜ | — | — |
+| 12 | Informes, búsqueda y exportación | ✅ | 2026-10-30 | _pendiente_ |
 | 13 | PWA y funcionamiento sin conexión | ⬜ | — | — |
 | 14 | Auditoría, seguridad y pruebas | ⬜ | — | — |
 | 15 | Preparación de despliegue y entrega | ⬜ | — | — |
@@ -176,7 +176,16 @@ Verificado: `npm run lint` (0 errores), `npm run typecheck` (sin errores), `npm 
 
 Pendiente: no se probó en viewport móvil real (misma limitación de herramienta ya anotada en fases anteriores); no se probó un CSV realmente grande (miles de filas) de punta a punta, aunque el envío a Supabase ya está en lotes de 300 filas por `insert` para ese caso; informes/exportación CSV quedan para la Fase 12.
 
-### ⬜ Fases 12-15
+### ✅ Fase 12 — Informes, búsqueda y exportación
+Migración `20261030150000_reports.sql` (aplicada vía `supabase db push`, autorizado explícitamente — mismo criterio no destructivo/aditivo de las fases previas): 4 funciones `security invoker` de solo lectura, mismo patrón que `dashboard_period_totals`/`dashboard_category_breakdown` (Fase 8) — `reports_monthly_series` (ingreso/gasto por mes calendario en un rango, para la evolución mensual), `reports_breakdown_by_account`/`_by_card`/`_by_merchant` (mismo agregado que `dashboard_category_breakdown` pero agrupando por cuenta, tarjeta o comercio; esta última limita a los 15 comercios de mayor gasto/ingreso). Todas filtran `status = 'confirmed'` y reciben `p_currency` explícito — ningún informe suma CRC+USD ni cuenta un movimiento anulado. `src/types/database.ts` regenerado con `supabase gen types`.
+
+UI nueva en `/reports` (antes el placeholder de Fase 3), con pestañas (mismo patrón `Tabs` de Fases 5/9) y selector de moneda + mes (mismo patrón que el dashboard, Fase 8): **Resumen** (ingreso/gasto del mes con comparación % vs. mes anterior — reusa el criterio "solo si hay dato previo", y evolución de los últimos 6 meses); **Desglose** (gasto o ingreso por categoría/cuenta/tarjeta/comercio, un solo componente de gráfico genérico `BreakdownBarChart` para las 4 dimensiones — categoría reusa la RPC de la Fase 8, las otras tres son nuevas); **Recurrentes** (lista de gastos recurrentes activos con total agrupado por moneda y periodicidad — nunca normaliza semanal/anual a "por mes", eso inventaría una cifra); **Tarjetas** (deuda actual por tarjeta vía `card_balances`, Fase 5, y pagos hechos en el periodo elegido vía `card_payments` filtrado por rango); **Presupuestos** (cumplimiento del mes elegido, reusa `budget_progress` de la Fase 9 sin recalcular nada en el cliente); **Búsqueda** (búsqueda global por comercio/notas en todo el historial, sin filtro de fecha, reusa `useTransactions` de la Fase 6 con límite de 50 resultados); **Exportar** (CSV de movimientos propios con periodo y columnas seleccionables — `shared/lib/csv.ts` suma `toCsv`, con BOM UTF-8 para que Excel en Windows no rompa tildes/ñ; RLS ya limita la consulta a los movimientos del usuario autenticado, sin chequeo adicional en el cliente).
+
+Verificado: `npm run lint` (0 errores), `npm run typecheck` (sin errores), `npm run test` (97/97 — 5 tests nuevos de `toCsv`, incluyendo ida y vuelta con `parseCsv`) y `npm run build` sin errores. `supabase db advisors --linked --type security` sin hallazgos nuevos (mismo warning preexistente de Auth). Probado en el navegador contra el proyecto real (datos de prueba acumulados de las Fases 6-11): Resumen de octubre 2026 mostró ingreso ₡100.000,00 y gasto ₡36.000,00 (coincide con `/transactions`); Desglose por categoría dio Alimentación ₡3.500,00 + Sin categoría ₡32.500,00 = ₡36.000,00, y por cuenta "Efectivo Prueba" ₡21.000,00 + Sin cuenta (gasto con tarjeta) ₡15.000,00 = ₡36.000,00 — ambos reconciliados con el total del mes; Tarjetas mostró "Visa Prueba F10" con deuda ₡10.000,00 y pagado ₡5.000,00 en el periodo (coincide con los ₡15.000,00 de compra menos ₡5.000,00 de pago de la Fase 10); Presupuestos mostró "Presupuesto general" ₡36.000,00 de ₡3.000,00 (mismo dato que el widget del dashboard); Búsqueda con "netflix" devolvió exactamente el movimiento "Netflix" ₡7.000,00; Exportar generó un CSV real descargado al navegador (`movimientos_2026-10-01_2026-10-30.csv`), verificado por contenido (BOM + 10 columnas + 8 filas, montos y nombres exactos — borrado tras la verificación, no es un artefacto a conservar). No se pudo probar en viewport móvil real en esta sesión (misma limitación de herramienta ya anotada en fases anteriores).
+
+Pendiente: commit de cierre de fase (hash a completar en la tabla); no se probó la exportación con miles de filas de punta a punta (el `select('*')` de `ExportPanel` no pagina — razonable para el volumen esperado de un usuario personal, pero no verificado a gran escala).
+
+### ⬜ Fases 13-15
 Sin empezar.
 
 ---

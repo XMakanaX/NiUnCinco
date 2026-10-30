@@ -70,6 +70,23 @@ export function parseCsv(text: string, delimiter: string): string[][] {
   return rows.filter((r) => !(r.length === 1 && r[0]!.trim() === ''));
 }
 
+/**
+ * Serializa filas a CSV (coma, CRLF — convención ampliamente compatible
+ * con Excel/Sheets). Un campo se envuelve en comillas si contiene coma,
+ * comilla o salto de línea; las comillas internas se escapan duplicando
+ * (`""`, mismo criterio que `parseCsv` al leerlas).
+ */
+export function toCsv(rows: string[][]): string {
+  const escapeField = (field: string): string => {
+    if (/[",\r\n]/.test(field)) {
+      return `"${field.replace(/"/g, '""')}"`;
+    }
+    return field;
+  };
+
+  return rows.map((row) => row.map(escapeField).join(',')).join('\r\n');
+}
+
 const CANDIDATE_DELIMITERS = [',', ';', '\t'] as const;
 
 /** Elige el delimitador cuya cantidad de apariciones es más consistente
