@@ -7,6 +7,7 @@ import { useAuthStore } from '@/shared/lib/auth';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { PageMessage } from '@/shared/ui/PageMessage';
+import { Logo } from '@/shared/ui/Logo';
 import { updatePasswordSchema, type UpdatePasswordInput } from '@/features/auth/schema';
 
 /**
@@ -44,6 +45,7 @@ export function UpdatePasswordPage() {
     return (
       <div className="flex min-h-dvh items-center justify-center p-4">
         <div className="w-full max-w-sm">
+          <Logo className="mb-6" withWordmark />
           <h1 className="text-xl font-semibold text-ink">Enlace inválido o vencido</h1>
           <PageMessage tone="error" className="mt-4">
             Pedí un nuevo enlace de recuperación.
@@ -59,6 +61,7 @@ export function UpdatePasswordPage() {
   return (
     <div className="flex min-h-dvh items-center justify-center p-4">
       <div className="w-full max-w-sm">
+        <Logo className="mb-6" withWordmark />
         <h1 className="text-xl font-semibold text-ink">Elegí una nueva contraseña</h1>
         <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
           <Input

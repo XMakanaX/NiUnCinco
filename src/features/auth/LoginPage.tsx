@@ -6,6 +6,7 @@ import { supabase } from '@/shared/lib/supabase';
 import { Input } from '@/shared/ui/Input';
 import { Button } from '@/shared/ui/Button';
 import { PageMessage } from '@/shared/ui/PageMessage';
+import { Logo } from '@/shared/ui/Logo';
 import { loginSchema, type LoginInput } from '@/features/auth/schema';
 
 export function LoginPage() {
@@ -33,6 +34,7 @@ export function LoginPage() {
   return (
     <div className="flex min-h-dvh items-center justify-center p-4">
       <div className="w-full max-w-sm">
+        <Logo className="mb-6" withWordmark />
         <h1 className="text-xl font-semibold text-ink">Iniciar sesión</h1>
         <form className="mt-6 flex flex-col gap-4" onSubmit={handleSubmit(onSubmit)} noValidate>
           <Input

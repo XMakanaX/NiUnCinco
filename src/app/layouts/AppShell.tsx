@@ -9,6 +9,7 @@ import {
   Wallet,
   type LucideIcon,
 } from 'lucide-react';
+import { Logo } from '@/shared/ui/Logo';
 
 const NAV_ITEMS: { to: string; label: string; icon: LucideIcon }[] = [
   { to: '/', label: 'Inicio', icon: LayoutDashboard },
@@ -28,6 +29,7 @@ export function AppShell() {
   return (
     <div className="flex min-h-dvh flex-col md:flex-row">
       <aside className="hidden border-r border-border p-4 md:block md:w-56 md:shrink-0">
+        <Logo className="mb-6 px-1" withWordmark />
         <SidebarNav />
       </aside>
 
