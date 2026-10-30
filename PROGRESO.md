@@ -19,7 +19,7 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 11 | Importación de CSV | ✅ | 2026-10-30 | `a50436d` |
 | 12 | Informes, búsqueda y exportación | ✅ | 2026-10-30 | `b484637` |
 | 13 | PWA y funcionamiento sin conexión | 🟡 | 2026-10-30 | `94345bc` |
-| 14 | Auditoría, seguridad y pruebas | 🟡 | 2026-10-30 | _pendiente de commit_ |
+| 14 | Auditoría, seguridad y pruebas | 🟡 | 2026-10-30 | `38f88ff`/`16c13a1` |
 | 15 | Preparación de despliegue y entrega | ⬜ | — | — |
 
 ---
