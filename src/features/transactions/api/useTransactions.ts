@@ -32,6 +32,18 @@ export interface TransactionFilters {
 
 const QUERY_KEY = ['transactions'];
 
+/**
+ * `supabase-js` arma `.or()` como un string crudo de filtros PostgREST:
+ * `,`/`(`/`)` sin escapar en el texto de búsqueda cortarían la condición
+ * y permitirían agregar filtros propios (siempre dentro de los datos del
+ * usuario — RLS no se ve afectado — pero rompe o distorsiona la búsqueda).
+ * `%`/`_` son comodines de `ilike` y también se escapan para que el
+ * término se busque literalmente.
+ */
+function escapeIlikeSearchTerm(term: string): string {
+  return term.replace(/[,()%_\\]/g, (char) => `\\${char}`);
+}
+
 export function useTransactions(filters: TransactionFilters = {}) {
   const userId = useAuthStore((state) => state.user?.id);
 
@@ -51,7 +63,10 @@ export function useTransactions(filters: TransactionFilters = {}) {
       if (filters.cardId) query = query.eq('card_id', filters.cardId);
       if (filters.categoryId) query = query.eq('category_id', filters.categoryId);
       if (filters.type) query = query.eq('type', filters.type);
-      if (filters.search) query = query.or(`merchant.ilike.%${filters.search}%,notes.ilike.%${filters.search}%`);
+      if (filters.search) {
+        const term = escapeIlikeSearchTerm(filters.search);
+        query = query.or(`merchant.ilike.%${term}%,notes.ilike.%${term}%`);
+      }
       if (filters.limit) query = query.limit(filters.limit);
 
       const { data, error } = await query;

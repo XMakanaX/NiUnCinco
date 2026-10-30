@@ -84,6 +84,12 @@ describe('toCsv', () => {
     expect(toCsv([['línea 1\nlínea 2', '1']])).toBe('"línea 1\nlínea 2",1');
   });
 
+  it('antepone comilla simple a campos que empiezan con =/+/-/@ para neutralizar fórmulas', () => {
+    expect(toCsv([['=HYPERLINK("http://evil.test")', '1']])).toBe("\"'=HYPERLINK(\"\"http://evil.test\"\")\",1");
+    expect(toCsv([['+1', '-2', '@3']])).toBe("'+1,'-2,'@3");
+    expect(toCsv([['Supermercado normal', '1']])).toBe('Supermercado normal,1');
+  });
+
   it('ida y vuelta con parseCsv', () => {
     const original = [
       ['fecha', 'comercio', 'monto'],

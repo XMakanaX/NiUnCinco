@@ -76,12 +76,23 @@ export function parseCsv(text: string, delimiter: string): string[][] {
  * comilla o salto de línea; las comillas internas se escapan duplicando
  * (`""`, mismo criterio que `parseCsv` al leerlas).
  */
+/**
+ * Un campo que empieza con `=`/`+`/`-`/`@`/tab/CR se antepone con `'`:
+ * Excel/Sheets lo interpretaría como fórmula al abrir el CSV (comercio y
+ * notas son texto libre del usuario — CWE-1236, "CSV injection"). El `'`
+ * fuerza texto plano sin cambiar el valor visible.
+ */
+function neutralizeFormula(field: string): string {
+  return /^[=+\-@\t\r]/.test(field) ? `'${field}` : field;
+}
+
 export function toCsv(rows: string[][]): string {
   const escapeField = (field: string): string => {
-    if (/[",\r\n]/.test(field)) {
-      return `"${field.replace(/"/g, '""')}"`;
+    const safe = neutralizeFormula(field);
+    if (/[",\r\n]/.test(safe)) {
+      return `"${safe.replace(/"/g, '""')}"`;
     }
-    return field;
+    return safe;
   };
 
   return rows.map((row) => row.map(escapeField).join(',')).join('\r\n');

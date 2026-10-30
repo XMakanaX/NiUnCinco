@@ -18,8 +18,8 @@ Leyenda: ✅ completa · 🟡 parcial / en curso · ⬜ no iniciada.
 | 10 | Pagos y ciclo de tarjetas de crédito | ✅ | 2026-10-29 | `70a4dae` |
 | 11 | Importación de CSV | ✅ | 2026-10-30 | `a50436d` |
 | 12 | Informes, búsqueda y exportación | ✅ | 2026-10-30 | `b484637` |
-| 13 | PWA y funcionamiento sin conexión | 🟡 | 2026-10-30 | _pendiente de commit_ |
-| 14 | Auditoría, seguridad y pruebas | ⬜ | — | — |
+| 13 | PWA y funcionamiento sin conexión | 🟡 | 2026-10-30 | `94345bc` |
+| 14 | Auditoría, seguridad y pruebas | 🟡 | 2026-10-30 | _pendiente de commit_ |
 | 15 | Preparación de despliegue y entrega | ⬜ | — | — |
 
 ---
@@ -204,7 +204,27 @@ Verificado: `npm run lint` (0 errores), `npm run typecheck` (sin errores), `npm 
 
 Pendiente: verificación end-to-end autenticada (offline → reconexión → sin duplicados; error permanente; cambio de usuario) con credenciales reales; verificación en hardware real (iPhone/Android) — instalación, safe areas, modo avión; iconos de marca reales en mayor resolución y screenshots para el manifest (quedaron fuera de alcance, ver nota de assets arriba); `git diff package.json` debe revisarse antes de dar por cerrado el commit (2 dependencias nuevas: `@tanstack/react-query-persist-client` en `dependencies`, `fake-indexeddb` en `devDependencies`).
 
-### ⬜ Fases 14-15
+### 🟡 Fase 14 — Auditoría, seguridad y pruebas
+Marcada parcial: igual que Fase 13, no hay credenciales de prueba en esta sesión para ejercitar el flujo autenticado real (RLS con dos usuarios en vivo, formularios, doble envío en navegador) — la auditoría de esos puntos fue por código/migraciones, no por ejecución end-to-end.
+
+Base verificada antes de tocar nada: `npm run lint` (0 errores), `npm run typecheck` (sin errores). `npm run test` encontró **1 fallo real** (no flaky de infraestructura): `queue.test.ts` → "ordena por fecha de creación ascendente" fallaba porque `listOps` (`src/shared/offline/queue.ts`) ordenaba solo por `createdAt` (string ISO, resolución de milisegundo); `getAllFromIndex` por `userId` devuelve empates en orden de la clave primaria (un UUID aleatorio), no de inserción, así que dos operaciones encoladas en el mismo milisegundo (p. ej. guardar dos gastos offline muy rápido) podían sincronizarse en orden incorrecto. Corregido agregando `PendingOp.seq` (contador monotónico, `src/shared/offline/types.ts`) como desempate en `listOps`; test nuevo no necesario, el existente ya lo cubre y ahora pasa de forma determinística. Tras el fix: `npm run test` 119/119 (incluye el test nuevo de inyección de fórmulas CSV descrito abajo), `npm run build` sin errores (mismo warning preexistente de chunk >500kB).
+
+Hallazgos de seguridad corregidos:
+- **Inyección de fórmulas CSV (CWE-1236)** en `toCsv` (`src/shared/lib/csv.ts`, usado por Exportar de la Fase 12): comercio/notas son texto libre del usuario; un valor que empezara con `=`/`+`/`-`/`@` se interpretaría como fórmula al abrir el CSV exportado en Excel/Sheets. Corregido anteponiendo `'` a esos campos antes de escaparlos (estándar de la industria para este tipo de exportación); test nuevo en `csv.test.ts`.
+- **Inyección de filtro PostgREST** en la búsqueda de movimientos (`useTransactions.ts`, usado por `/transactions` y la Búsqueda global de Fase 12): el término de búsqueda se interpolaba sin escapar dentro de `.or('merchant.ilike...,notes.ilike...')`; una coma o paréntesis en el texto cortaba la condición y podía agregar cláusulas propias. El impacto real está acotado porque RLS sigue limitando todo a las filas del propio usuario (no es una fuga entre cuentas), pero distorsionaba o rompía la búsqueda. Corregido con `escapeIlikeSearchTerm` (escapa `, ( ) % _ \`).
+
+Verificado por código (sin hallazgos nuevos, confirma lo ya cerrado en Fases 4-13): RLS `enable`+`force` en las 11 tablas, políticas con `(select auth.uid())` (una evaluación por consulta, no por fila) en todas; 9 de 10 funciones RPC/vista son `security invoker` con `set search_path = ''` explícito (la única `security definer`, `handle_new_user`, es el trigger que crea el perfil al registrarse — uso correcto y necesario); ninguna `service_role` ni secreto en `src/`, solo `VITE_*` llega al cliente, `.env.local` ignorado por git; los 10 diálogos con formulario real bloquean doble envío (`isSubmitting`); los 5 flujos con `client_id` (movimiento, transferencia, pago de tarjeta, aporte de meta, recurrente pagado) son idempotentes por el `unique(user_id, client_id)` de la base, confirmado desde Fases 6/9/13; ningún informe/dashboard suma CRC+USD (todas las RPC reciben `p_currency` explícito); lote de importación CSV sigue en 300 filas por `insert`. `npx supabase db advisors --linked --type security`: mismo único warning preexistente desde la Fase 4 (`auth_leaked_password_protection` — configuración de Auth en el dashboard, no una migración; no se tocó sin autorización).
+
+Pendientes identificados, no corregidos en esta sesión (requieren una decisión o verificación que excede "corregí lo que pude de forma segura"):
+- `/dev/design-system` queda sin proteger en el router (`src/app/router.tsx`) — ya estaba anotado desde la Fase 2/3 para retirarse o protegerse antes de producción; es la Fase 15 quien debe decidirlo.
+- `/transactions` y la Búsqueda global (`useTransactions`) no paginan: sin filtro de fecha traen todo el historial del usuario. Para el volumen esperado de un usuario personal no es crítico hoy, pero crecerá con el tiempo; no se implementó paginación en esta sesión porque es un cambio de UX (carga incremental) que necesita probarse con datos reales, no solo código.
+- El bundle de producción sigue sin dividir por rutas (warning de chunk >500kB desde la Fase 3): no se aplicó `React.lazy`/`route.lazy` en `router.tsx` porque cambia el comportamiento de carga de las 9 rutas y no hay forma de verificarlo en el navegador en esta sesión (sin credenciales de prueba para las pantallas autenticadas). Recomendado para la Fase 15 junto con la revisión de Vercel.
+- Esquemas zod de importe (`amount = z.number().positive()`) no tienen cota superior explícita contra el `numeric(14,2)` de la base; un importe extremo fallaría con el error real de Postgres en vez de un mensaje de formulario — cosmético, no de seguridad, no se tocó.
+- Verificación en vivo pendiente (misma limitación que Fase 13): RLS con dos usuarios reales simultáneos, formularios con errores de red real, accesibilidad con lector de pantalla real, viewport móvil real — todo revisado por código en esta sesión, no ejecutado.
+
+Archivos tocados: `src/shared/offline/queue.ts`, `src/shared/offline/types.ts`, `src/shared/lib/csv.ts`, `src/shared/lib/csv.test.ts`, `src/features/transactions/api/useTransactions.ts`. Sin migración de base nueva. Sin cambios en `package.json`.
+
+### ⬜ Fase 15
 Sin empezar.
 
 ---

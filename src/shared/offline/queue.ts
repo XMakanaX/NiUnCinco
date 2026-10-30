@@ -7,6 +7,8 @@ function notifyChanged() {
   if (typeof window !== 'undefined') window.dispatchEvent(new Event(QUEUE_CHANGED_EVENT));
 }
 
+let opSeq = 0;
+
 export async function addOp(op: { userId: string; kind: OpKind; payload: unknown }): Promise<void> {
   const db = await getOfflineDb();
   const entry: PendingOp = {
@@ -15,6 +17,7 @@ export async function addOp(op: { userId: string; kind: OpKind; payload: unknown
     kind: op.kind,
     payload: op.payload,
     createdAt: new Date().toISOString(),
+    seq: opSeq++,
     status: 'pending',
   };
   await db.add(PENDING_OPS_STORE, entry);
@@ -24,7 +27,7 @@ export async function addOp(op: { userId: string; kind: OpKind; payload: unknown
 export async function listOps(userId: string): Promise<PendingOp[]> {
   const db = await getOfflineDb();
   const ops = await db.getAllFromIndex(PENDING_OPS_STORE, PENDING_OPS_USER_INDEX, userId);
-  return ops.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  return ops.sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.seq - b.seq);
 }
 
 export async function removeOp(id: string): Promise<void> {

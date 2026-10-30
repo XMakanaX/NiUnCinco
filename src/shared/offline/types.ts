@@ -27,6 +27,8 @@ export interface PendingOp {
   kind: OpKind;
   payload: unknown;
   createdAt: string;
+  /** Contador monotónico — desempata `createdAt` cuando dos operaciones se encolan en el mismo milisegundo. */
+  seq: number;
   status: 'pending' | 'failed';
   lastError?: string;
 }
